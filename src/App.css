@@ -1574,3 +1574,180 @@ button {
 		transform: translateY(0);
 	}
 }
+
+/* ================================================================
+   ENDPOINTS PAGE — à ajouter à la fin de ton CSS principal
+   ================================================================ */
+
+/* Layout deux colonnes */
+.ep-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Sidebar filtres */
+.ep-filters {
+  position: sticky;
+  top: 16px;
+  padding: 16px !important;
+}
+
+.ep-filters__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a7080;
+  margin: 0 0 10px;
+}
+
+.ep-filter-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #5e6475;
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  margin-bottom: 2px;
+}
+
+.ep-filter-btn:hover {
+  background: #f7f8fc;
+  color: #1c1c3c;
+}
+
+.ep-filter-btn--active {
+  background: rgba(247, 148, 29, 0.1);
+  border-color: rgba(247, 148, 29, 0.3);
+  color: #e47f00;
+  font-weight: 600;
+}
+
+.ep-filter-btn--method-active {
+  font-weight: 600;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.ep-filter-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ep-filter-count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #f1f3f8;
+  color: #6a7080;
+  border-radius: 5px;
+  padding: 1px 7px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ep-divider {
+  height: 1px;
+  background: #e6e8f0;
+  margin: 8px 0 10px;
+}
+
+/* Search */
+.ep-search-wrap {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.ep-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9aa0b0;
+  pointer-events: none;
+}
+
+.ep-search {
+  padding-left: 38px !important;
+}
+
+/* Result count */
+.ep-result-count {
+  font-size: 0.8rem;
+  color: #9aa0b0;
+  margin: 0 0 12px;
+}
+
+/* Endpoint list */
+.ep-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ep-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e6e8f0;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.ep-item:hover {
+  border-color: #f7941d;
+  box-shadow: 0 2px 12px rgba(17, 24, 39, 0.06);
+  transform: translateX(2px);
+}
+
+.ep-path {
+  font-family: 'Fira Code', 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.85rem;
+  color: #1c1c3c;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ep-summary {
+  font-size: 0.82rem;
+  color: #6a7080;
+  flex-shrink: 0;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ep-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ep-filters {
+    position: static;
+  }
+
+  .ep-summary {
+    display: none;
+  }
+}
+
+
