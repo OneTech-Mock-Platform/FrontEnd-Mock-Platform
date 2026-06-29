@@ -266,20 +266,20 @@ export default function SpecificationEditPage() {
 										<div key={i + 1} className="spec-line-number">{i + 1}</div>
 									))}
 								</div>
-								<textarea
-									ref={textareaRef}
-									className="spec-code-editor__textarea"
-									name="content"
-									value={draft.content}
-									onChange={handleFieldChange}
-									onScroll={handleTextareaScroll}
-									onKeyDown={handleTextareaKeyDown}
-									spellCheck={false}
-									autoComplete="off"
-									autoCorrect="off"
-									autoCapitalize="off"
-									placeholder={`Collez votre contenu OpenAPI ${draft.format.toUpperCase()} ici…`}
-								/>
+							<textarea
+								ref={textareaRef}
+								className="spec-code-editor__textarea"
+								name="content"
+								value={draft.content}
+								readOnly
+								onScroll={handleTextareaScroll}
+								onKeyDown={handleTextareaKeyDown}
+								spellCheck={false}
+								autoComplete="off"
+								autoCorrect="off"
+								autoCapitalize="off"
+								placeholder={`Collez votre contenu OpenAPI ${draft.format.toUpperCase()} ici…`}
+							/>
 							</div>
 
 							<div className="spec-editor-statusbar">

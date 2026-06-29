@@ -18,12 +18,44 @@ type SpecificationItem = {
 		operationCount: number
 	}
 }
-
+/* 
 type Endpoint = {
 	id: string
 	path: string
 	method: string
 	summary?: string
+	responses?: Record<string, string>
+}
+ */
+
+
+type EndpointDetails = {
+  description?: string
+  operationId?: string
+  tags: string[]
+  parameters: {
+    name: string
+    in: string
+    required: boolean
+    description?: string
+  }[]
+  requestBody?: {
+    required: boolean
+    contentType: string
+  }
+  responses: {
+    statusCode: string
+    description: string
+    contentType?: string
+  }[]
+}
+
+type Endpoint = {
+  id: string
+  path: string
+  method: string
+  summary?: string
+  responses?: EndpointDetails
 }
 
 const apiBaseUrl = '/api/specifications'
@@ -391,6 +423,67 @@ export default function SpecificationViewPage() {
 									<strong>Summary:</strong> {selectedEndpoint.summary}
 								</div>
 							)}
+							{/* {selectedEndpoint.responses && Object.keys(selectedEndpoint.responses).length > 0 && (
+								<div style={{ marginBottom: '12px' }}>
+									<strong>Codes de réponse:</strong>
+									<div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+										{Object.keys(selectedEndpoint.responses).map((code) => {
+											const codeNum = parseInt(code);
+											let color = '#5e6475';
+											if (codeNum >= 200 && codeNum < 300) color = '#15803d';
+											else if (codeNum >= 300 && codeNum < 400) color = '#1d4ed8';
+											else if (codeNum >= 400 && codeNum < 500) color = '#a16207';
+											else if (codeNum >= 500) color = '#b91c1c';
+											return (
+												<span
+													key={code}
+													style={{
+														padding: '4px 10px',
+														borderRadius: '6px',
+														backgroundColor: '#f4f6fb',
+														color,
+														fontWeight: 600,
+														fontSize: '0.85rem',
+														border: '1px solid #e6e8f0',
+													}}
+												>
+													{code}
+												</span>
+											);
+										})}
+									</div>
+								</div>
+							)} */}
+
+							{selectedEndpoint.responses?.responses?.length ? (
+  <div style={{ marginBottom: '12px' }}>
+    <strong>Réponses:</strong>
+
+    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {selectedEndpoint.responses.responses.map((res, index) => (
+        <div
+          key={index}
+          style={{
+            padding: '8px 10px',
+            border: '1px solid #e6e8f0',
+            borderRadius: '6px',
+            background: '#f9fafb'
+          }}
+        >
+          <div>
+            <strong>Status:</strong> {res.statusCode}
+          </div>
+
+          <div>
+            <strong>Description:</strong> {res.description}
+          </div>
+
+        
+        </div>
+      ))}
+    </div>
+  </div>
+) : null}
 						</div>
 						<div className="spec-modal__actions">
 							<button className="btn btn-secondary" onClick={() => setSelectedEndpoint(null)}>
