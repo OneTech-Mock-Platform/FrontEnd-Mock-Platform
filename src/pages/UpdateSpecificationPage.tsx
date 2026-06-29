@@ -95,7 +95,7 @@ export default function SpecificationEditPage() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(draft),
 			})
-			if (!response.ok) throw new Error('La sauvegarde a échoué.')
+			/* if (!response.ok) throw new Error('La sauvegarde a échoué.')
 			const updated = (await response.json()) as SpecificationItem
 			setSpec(updated)
 			setDraft({
@@ -103,7 +103,7 @@ export default function SpecificationEditPage() {
 				fileName: updated.fileName,
 				format: updated.format,
 				content: updated.content,
-			})
+			}) */
 			setSaveSuccess(true)
 			setTimeout(() => setSaveSuccess(false), 3000)
 		} catch (e) {
@@ -114,7 +114,7 @@ export default function SpecificationEditPage() {
 	}
 
 
-	// Tab = 2 espaces
+
 	const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === 'Tab') {
 			e.preventDefault()
@@ -271,7 +271,7 @@ export default function SpecificationEditPage() {
 								className="spec-code-editor__textarea"
 								name="content"
 								value={draft.content}
-								readOnly
+								onChange={handleFieldChange}
 								onScroll={handleTextareaScroll}
 								onKeyDown={handleTextareaKeyDown}
 								spellCheck={false}
