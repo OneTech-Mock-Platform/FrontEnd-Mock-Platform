@@ -45,3 +45,22 @@ export function logoutUser() {
 export function getToken(): string | null {
   return localStorage.getItem('access_token');
 }
+
+export async function updateProfile(data: { name?: string, currentPassword?: string, newPassword?: string }) {
+  const token = getToken();
+  if (!token) {
+    throw new Error('Token non trouvé');
+  }
+
+  const res = await fetch(`${API_BASE}/auth/profile`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(extractErrorMessage(result));
+  return result;
+}

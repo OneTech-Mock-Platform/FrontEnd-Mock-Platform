@@ -47,10 +47,18 @@ function Navbar() {
 					</button>
 					{isDropdownOpen && (
 						<ul className="dropdown-menu dropdown-menu-end show" style={{ display: 'block' }}>
-							<li><a className="dropdown-item" href="#">Profil</a></li>
 							<li>
-								<button 
-									className="dropdown-item" 
+								<button
+									className="dropdown-item"
+									onClick={() => { navigate('/profile'); toggleDropdown(); }}
+									style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+								>
+									Profil
+								</button>
+							</li>
+							<li>
+								<button
+									className="dropdown-item"
 									onClick={handleLogout}
 									style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
 								>
