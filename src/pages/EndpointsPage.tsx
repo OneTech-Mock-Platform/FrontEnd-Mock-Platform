@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
+import { getToken } from '../services/api'
 
 type Endpoint = {
 	id: string
@@ -36,7 +37,13 @@ export default function EndpointsPage() {
 			if (!specId) return
 			setLoading(true)
 			try {
-				const response = await fetch(`${apiBaseUrl}/specification/${specId}`)
+				const token = getToken()
+				const headers: Record<string, string> = {}
+				if (token) {
+					headers['Authorization'] = `Bearer ${token}`
+				}
+
+				const response = await fetch(`${apiBaseUrl}/specification/${specId}`, { headers })
 				if (!response.ok) throw new Error('Impossible de charger les endpoints.')
 				const data = (await response.json()) as { items: Endpoint[] }
 				setEndpoints(data.items)

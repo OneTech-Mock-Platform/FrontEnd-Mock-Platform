@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
+import { getToken } from '../services/api'
 
 type SpecificationFormat = 'yaml' | 'yml' | 'json'
 
@@ -183,7 +184,13 @@ export default function SpecificationViewPage() {
 		const load = async () => {
 			setLoading(true)
 			try {
-				const response = await fetch(`${apiBaseUrl}/${id}`)
+				const token = getToken()
+				const headers: Record<string, string> = {}
+				if (token) {
+					headers['Authorization'] = `Bearer ${token}`
+				}
+
+				const response = await fetch(`${apiBaseUrl}/${id}`, { headers })
 				if (!response.ok) throw new Error('Spécification introuvable.')
 				const data = (await response.json()) as SpecificationItem
 				setSpec(data)
@@ -191,7 +198,7 @@ export default function SpecificationViewPage() {
 				setParsed(p)
 
 				// Load endpoints from API
-				const endpointsResponse = await fetch(`${apiBaseUrl}/${id}/endpoints`)
+				const endpointsResponse = await fetch(`${apiBaseUrl}/${id}/endpoints`, { headers })
 				if (endpointsResponse.ok) {
 					const endpointsData = await endpointsResponse.json()
 					setEndpoints(endpointsData.items || [])

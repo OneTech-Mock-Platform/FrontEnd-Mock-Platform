@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
+import { getToken } from '../services/api'
 
 type SpecificationFormat = 'yaml' | 'yml' | 'json'
 
@@ -56,6 +57,15 @@ function formatDate(value: string) {
 	}).format(new Date(value))
 }
 
+function authHeaders(): Record<string, string> {
+	const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+	const token = getToken()
+	if (token) {
+		headers['Authorization'] = `Bearer ${token}`
+	}
+	return headers
+}
+
 
 export default function SpecificationPage() {
 	const navigate = useNavigate()
@@ -74,21 +84,14 @@ export default function SpecificationPage() {
 
 	const totalPages = Math.ceil(specs.length / PAGE_SIZE)
 	const paginated = specs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-/* 
-	const totalEndpoints = useMemo(
-		() => specs.reduce((sum, s) => sum + s.summary.endpointCount, 0),
-		[specs],
-	)
-	const totalOperations = useMemo(
-		() => specs.reduce((sum, s) => sum + s.summary.operationCount, 0),
-		[specs],
-	) */
 
 	const loadSpecifications = async () => {
 		setLoading(true)
 		setError('')
 		try {
-			const response = await fetch(apiBaseUrl)
+			const response = await fetch(apiBaseUrl, {
+				headers: authHeaders(),
+			})
 			if (!response.ok) throw new Error('Impossible de charger les spécifications.')
 			const data = (await response.json()) as SpecificationResponse
 			setSpecs(data.items ?? [])
@@ -133,7 +136,7 @@ export default function SpecificationPage() {
 		try {
 			const response = await fetch(apiBaseUrl, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: authHeaders(),
 				body: JSON.stringify(importDraft),
 			})
 			if (!response.ok) throw new Error("L'import a échoué.")
@@ -154,7 +157,10 @@ export default function SpecificationPage() {
 		if (!deleteTarget) return
 		setSaving(true)
 		try {
-			const response = await fetch(`${apiBaseUrl}/${deleteTarget.id}`, { method: 'DELETE' })
+			const response = await fetch(`${apiBaseUrl}/${deleteTarget.id}`, {
+				method: 'DELETE',
+				headers: authHeaders(),
+			})
 			if (!response.ok) throw new Error('La suppression a échoué.')
 			setSpecs((prev) => prev.filter((i) => i.id !== deleteTarget.id))
 			setDeleteSuccess(deleteTarget.name)
@@ -258,30 +264,6 @@ export default function SpecificationPage() {
 									/>
 								</div>
 
-								{/* <div className="import-meta-grid">
-									<label className="form-group">
-										<span>Nom</span>
-										<input className="form-control" name="name" value={importDraft.name}
-											onChange={handleInputChange(setImportDraft)} placeholder="Nom de la spécification" />
-									</label>
-									<label className="form-group">
-										<span>Fichier</span>
-										<input className="form-control" name="fileName" value={importDraft.fileName}
-											onChange={handleInputChange(setImportDraft)} placeholder="api.yaml" />
-									</label>
-									<label className="form-group">
-										<span>Format</span>
-										<select className="form-select" name="format" value={importDraft.format}
-											onChange={handleInputChange(setImportDraft)}>
-											<option value="json">json</option>
-											<option value="yaml">yaml</option>
-											<option value="yml">yml</option>
-										</select>
-									</label>
-								</div> */}
-
-							
-
 								{importError ? <div className="alert alert-warning">{importError}</div> : null}
 
 								<div className="spec-actions">
@@ -328,9 +310,6 @@ export default function SpecificationPage() {
 													<th>Fichier</th>
 													<th>Format</th>
 													<th>Date</th>
-										{/* 
-													<th>Endpoints</th>
-													<th>Opérations</th> */}
 													<th className="spec-table__actions-col">Actions</th>
 												</tr>
 											</thead>
@@ -350,12 +329,6 @@ export default function SpecificationPage() {
 														</td>
 														<td className="spec-table__date">{formatDate(spec.createdAt)}</td>
 														
-														{/* <td>
-															<span className="spec-table__count">{spec.summary.endpointCount}</span>
-														</td>
-														<td>
-															<span className="spec-table__count">{spec.summary.operationCount}</span>
-														</td> */}
 														<td>
 															<div className="spec-table__action-btns">
 																<button
