@@ -5,7 +5,7 @@ import SpecificationViewPage from './pages/SpecificationDetailsPage.tsx'
 import SpecificationEditPage from './pages/UpdateSpecificationPage.tsx'
 import EndpointsPage from './pages/EndpointsPage.tsx'
 import SignInPage from './pages/SignInPage.tsx'
-import SignUpPage from './pages/SingUpPage.tsx'
+import SignUpPage from './pages/SignUpPage.tsx'
 import './App.css'
 
 function App() {

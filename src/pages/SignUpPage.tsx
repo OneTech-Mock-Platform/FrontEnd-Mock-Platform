@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { registerUser } from "../services/api";
-import logo from "../assets/images/logo.png";
+//import logo from "../assets/images/logo.png";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -29,8 +29,8 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      const user = await registerUser(name, email, password);
-      login(user);
+      const result = await registerUser(name, email, password);
+      login(result.user);
       navigate("/specifications");
     } catch (err: any) {
       setError(err.message || "Erreur lors de l'inscription");
@@ -41,14 +41,11 @@ export default function SignUpPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 md:p-12 relative overflow-hidden bg-surface" style={{ color: '#ffffff' }} >
-      {/* Background Gradient Orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* Main Glassmorphic Card Container */}
       <div className="relative w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 rounded-xl overflow-hidden shadow-2xl glass-panel border border-white/5 z-10">
         
-        {/* Left Panel: Logo & Brand */}
         <section className="hidden md:flex flex-col items-center justify-center p-12 bg-surface-container relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, #0f1023 0%, #1a1b3a 100%)' }}
         >
@@ -56,20 +53,19 @@ export default function SignUpPage() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_2px_2px,rgba(247,148,29,0.08)_1px,transparent_0)] bg-[size:32px_32px]"></div>
           </div>
           <div className="relative z-10 flex flex-col items-center gap-6">
-            <img src={logo} alt="OneTech Logo" className="w-28 h-28 object-contain" />
+           {/*  <img src={logo} alt="OneTech Logo" className="w-28 h-28 object-contain" />
             <h1 className="font-sans text-3xl font-bold text-white tracking-tight">OneTech</h1>
             <p className="text-gray-400 text-sm text-center max-w-xs">
               Plateforme de gestion d'API et de spécifications techniques
-            </p>
+            </p> */}
           </div>
         </section>
 
-        {/* Right Panel: Sign Up Form */}
         <section className="p-8 md:p-12 flex flex-col justify-center bg-[#0f1023]">
           <div className="w-full max-w-sm mx-auto space-y-6">
             <div className="text-center md:text-left space-y-2">
-              <h3 className="font-sans text-2xl font-bold text-white">Créer un compte</h3>
-              <p className="text-gray-400 text-sm">Rejoignez notre plateforme pour gérer vos APIs.</p>
+              <h3 className="font-sans text-2xl font-bold text-orange">Créer un compte</h3>
+              <p className="text-white-400 text-sm">Rejoignez notre plateforme.</p>
             </div>
 
             {error && (
@@ -83,7 +79,7 @@ export default function SignUpPage() {
                 <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="name">NOM COMPLET</label>
                 <div className="relative">
                   <input className="w-full bg-[#1a1b3a] border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#f7941d]/50 focus:border-[#f7941d] transition-all outline-none placeholder:text-gray-500"
-                    id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" required />
+                    id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" />
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
                 </div>
               </div>
@@ -91,7 +87,7 @@ export default function SignUpPage() {
                 <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="email">ADRESSE EMAIL</label>
                 <div className="relative">
                   <input className="w-full bg-[#1a1b3a] border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#f7941d]/50 focus:border-[#f7941d] transition-all outline-none placeholder:text-gray-500"
-                    id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="exemple@email.com" required />
+                    id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="exemple@email.com" />
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
                 </div>
               </div>
@@ -99,7 +95,7 @@ export default function SignUpPage() {
                 <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="password">MOT DE PASSE</label>
                 <div className="relative">
                   <input className="w-full bg-[#1a1b3a] border border-gray-700 rounded-lg pl-10 pr-10 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#f7941d]/50 focus:border-[#f7941d] transition-all outline-none placeholder:text-gray-500"
-                    id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Créez un mot de passe sécurisé" required />
+                    id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Créez un mot de passe sécurisé" />
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer">
@@ -112,7 +108,7 @@ export default function SignUpPage() {
                 <div className="relative">
                   <input className="w-full bg-[#1a1b3a] border border-gray-700 rounded-lg pl-10 pr-10 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#f7941d]/50 focus:border-[#f7941d] transition-all outline-none placeholder:text-gray-500"
                     id="confirmPassword" type={showConfirmPassword ? "text" : "password"} value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirmez votre mot de passe" required />
+                    onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirmez votre mot de passe" />
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
                   <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer">
