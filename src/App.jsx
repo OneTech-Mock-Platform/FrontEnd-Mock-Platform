@@ -6,6 +6,7 @@ import SpecificationEditPage from './pages/UpdateSpecificationPage.tsx'
 import EndpointsPage from './pages/EndpointsPage.tsx'
 import SignInPage from './pages/SignInPage.tsx'
 import SignUpPage from './pages/SignUpPage.tsx'
+import ForgetPasswordPage from './pages/ForgetPasswordPage.tsx'
 import ProfilPage from './pages/ProfilPage.tsx'
 import './App.css'
 
@@ -20,6 +21,8 @@ function App() {
        <Route path="/specifications/:specId/endpoints" element={<EndpointsPage />} />
         <Route path="/signIn" element={<SignInPage />} />
         <Route path="/signUp" element={<SignUpPage />} />
+        <Route path="/forgot-password" element={<ForgetPasswordPage />} />
+        <Route path="/forget-password" element={<ForgetPasswordPage />} />
         <Route path="/profile" element={<ProfilPage />} />
      
         <Route path="*" element={<Navigate to="/" replace />} />

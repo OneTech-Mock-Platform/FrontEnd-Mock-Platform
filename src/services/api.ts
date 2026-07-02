@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_BACKEND_ORIGIN || 'http://localhost:3000';
+const API_BASE = '/api';
 
 function extractErrorMessage(data: any): string {
   // Validation errors from class-validator come as an array
@@ -63,4 +63,40 @@ export async function updateProfile(data: { name?: string, currentPassword?: str
   const result = await res.json();
   if (!res.ok) throw new Error(extractErrorMessage(result));
   return result;
+}
+
+export async function requestPasswordResetCode(email: string) {
+  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(extractErrorMessage(data));
+  return data;
+}
+
+export async function verifyPasswordResetCode(email: string, otp: string) {
+  const res = await fetch(`${API_BASE}/auth/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(extractErrorMessage(data));
+  return data;
+}
+
+export async function resetPasswordWithToken(resetToken: string, newPassword: string) {
+  const res = await fetch(`${API_BASE}/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ resetToken, newPassword }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(extractErrorMessage(data));
+  return data;
 }

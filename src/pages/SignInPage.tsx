@@ -91,6 +91,15 @@ export default function SignInPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-xs text-gray-400 hover:text-[#f7941d] transition-colors"
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                </div>
               </div>
               <button type="submit" disabled={isLoading}
                 className={`w-full font-semibold text-sm tracking-wider uppercase py-3 rounded-lg hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 ${
