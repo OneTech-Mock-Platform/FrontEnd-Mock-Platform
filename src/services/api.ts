@@ -33,8 +33,23 @@ export async function loginUser(email: string, password: string) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(extractErrorMessage(data));
-  // Store token
-  localStorage.setItem('access_token', data.access_token);
+  return data;
+}
+
+export async function verifyLoginCode(email: string, otp: string) {
+  const res = await fetch(`${API_BASE}/auth/verify-login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(extractErrorMessage(data));
+
+  if (data.access_token) {
+    localStorage.setItem('access_token', data.access_token);
+  }
+
   return data;
 }
 
