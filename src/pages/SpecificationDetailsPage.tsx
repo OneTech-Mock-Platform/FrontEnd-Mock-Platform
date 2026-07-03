@@ -430,37 +430,7 @@ export default function SpecificationViewPage() {
 									<strong>Summary:</strong> {selectedEndpoint.summary}
 								</div>
 							)}
-							{/* {selectedEndpoint.responses && Object.keys(selectedEndpoint.responses).length > 0 && (
-								<div style={{ marginBottom: '12px' }}>
-									<strong>Codes de réponse:</strong>
-									<div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-										{Object.keys(selectedEndpoint.responses).map((code) => {
-											const codeNum = parseInt(code);
-											let color = '#5e6475';
-											if (codeNum >= 200 && codeNum < 300) color = '#15803d';
-											else if (codeNum >= 300 && codeNum < 400) color = '#1d4ed8';
-											else if (codeNum >= 400 && codeNum < 500) color = '#a16207';
-											else if (codeNum >= 500) color = '#b91c1c';
-											return (
-												<span
-													key={code}
-													style={{
-														padding: '4px 10px',
-														borderRadius: '6px',
-														backgroundColor: '#f4f6fb',
-														color,
-														fontWeight: 600,
-														fontSize: '0.85rem',
-														border: '1px solid #e6e8f0',
-													}}
-												>
-													{code}
-												</span>
-											);
-										})}
-									</div>
-								</div>
-							)} */}
+						
 
 							{selectedEndpoint.responses?.responses?.length ? (
   <div style={{ marginBottom: '12px' }}>
@@ -497,6 +467,28 @@ export default function SpecificationViewPage() {
 								Fermer
 							</button>
 						</div>
+
+
+	{/* <!-- Endpoint Detail Modal Actions -->*/}
+<div className="spec-modal__actions">
+  <button
+    className="btn btn-orange"
+    onClick={() => {
+      navigate(`/endpoints/${selectedEndpoint!.id}/scenarios`)
+      setSelectedEndpoint(null)
+    }}
+  >
+    Voir les scénarios
+  </button>
+  <button
+    className="btn btn-outline-secondary"
+    onClick={() => setSelectedEndpoint(null)}
+  >
+    Fermer
+  </button>
+</div>
+
+
 					</div>
 				</div>
 			)}

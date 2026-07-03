@@ -8,6 +8,7 @@ import SignInPage from './pages/SignInPage.tsx'
 import SignUpPage from './pages/SignUpPage.tsx'
 import ForgetPasswordPage from './pages/ForgetPasswordPage.tsx'
 import ProfilPage from './pages/ProfilPage.tsx'
+import ScenariosPage from './pages/ScenarioPage.tsx'
 import './App.css'
 
 function App() {
@@ -24,7 +25,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgetPasswordPage />} />
         <Route path="/forget-password" element={<ForgetPasswordPage />} />
         <Route path="/profile" element={<ProfilPage />} />
-     
+        <Route path="/endpoints/:endpointId/scenarios" element={<ScenariosPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
