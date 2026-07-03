@@ -76,10 +76,10 @@ export default function SignUpPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="name">NOM COMPLET</label>
+                <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="name">Username</label>
                 <div className="relative">
                   <input className="w-full bg-[#1a1b3a] border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#f7941d]/50 focus:border-[#f7941d] transition-all outline-none placeholder:text-gray-500"
-                    id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Dupont" />
+                    id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Entrez votre nom d'utilisateur" />
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
                 </div>
               </div>
@@ -95,7 +95,7 @@ export default function SignUpPage() {
                 <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="password">MOT DE PASSE</label>
                 <div className="relative">
                   <input className="w-full bg-[#1a1b3a] border border-gray-700 rounded-lg pl-10 pr-10 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#f7941d]/50 focus:border-[#f7941d] transition-all outline-none placeholder:text-gray-500"
-                    id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Créez un mot de passe sécurisé" />
+                    id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Entrez votre mot de passe" />
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer">
