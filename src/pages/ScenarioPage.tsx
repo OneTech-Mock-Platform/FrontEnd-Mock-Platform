@@ -11,6 +11,7 @@ type Scenario = {
   description?: string
   name?: string
   isDefault: boolean
+  mockContent?: string  // ← ajouter
 }
 
 const STATUS_COLORS: Record<string, { color: string; bg: string; border: string }> = {
@@ -26,6 +27,7 @@ export default function ScenarioPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)  // ← ajouter
 
   useEffect(() => {
     if (!endpointId) return
@@ -137,21 +139,44 @@ export default function ScenarioPage() {
                           {sc.description ?? '—'}
                         </span>
 
-
-                        {/* Bouton tester — sera branché sur Prism */}
-                        {/* <button
+                        {/* Bouton Voir mock */}
+                        <button
                           type="button"
                           className="btn btn-orange"
-                          style={{ fontSize: '0.8rem', padding: '6px 14px' }}
-                          onClick={() => {
-                         
-                          }}
+                          style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+                          onClick={() => setSelectedScenario(sc)}
                         >
-                          Tester
-                        </button> */}
+                          Voir mock
+                        </button>
                       </div>
                     )
                   })}
+                </div>
+              )}
+            </section>
+
+            {/* Panneau droit qui affiche le mockContent */}
+            <section className="spec-card" style={{ marginTop: 20 }}>
+              <div className="panel-header">
+                <h2 className="panel-title mb-0">Données Mock</h2>
+              </div>
+              {selectedScenario?.mockContent ? (
+                <pre style={{
+                  background: '#0f172a',
+                  color: '#e2e8f0',
+                  borderRadius: 10,
+                  padding: 16,
+                  fontSize: '0.78rem',
+                  lineHeight: 1.7,
+                  overflow: 'auto',
+                  maxHeight: 450,
+                  fontFamily: "'Fira Code', monospace",
+                }}>
+                  {selectedScenario.mockContent}
+                </pre>
+              ) : (
+                <div className="spec-empty">
+                  Aucune donnée mock disponible pour ce scénario.
                 </div>
               )}
             </section>

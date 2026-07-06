@@ -432,7 +432,7 @@ export default function SpecificationViewPage() {
 							)}
 						
 
-							{selectedEndpoint.responses?.responses?.length ? (
+{/* 							{selectedEndpoint.responses?.responses?.length ? (
   <div style={{ marginBottom: '12px' }}>
     <strong>Réponses:</strong>
 
@@ -460,13 +460,13 @@ export default function SpecificationViewPage() {
       ))}
     </div>
   </div>
-) : null}
+)  : null}*/}
 						</div>
-						<div className="spec-modal__actions">
+						{/* <div className="spec-modal__actions">
 							<button className="btn btn-secondary" onClick={() => setSelectedEndpoint(null)}>
 								Fermer
 							</button>
-						</div>
+						</div> */}
 
 
 	{/* <!-- Endpoint Detail Modal Actions -->*/}
