@@ -1,4 +1,3 @@
-// src/pages/ScenarioPage.tsx
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
@@ -11,7 +10,7 @@ type Scenario = {
   description?: string
   name?: string
   isDefault: boolean
-  mockContent?: string  // ← ajouter
+  mockContent?: string  
 }
 
 const STATUS_COLORS: Record<string, { color: string; bg: string; border: string }> = {
@@ -27,7 +26,7 @@ export default function ScenarioPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)  // ← ajouter
+  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)  
 
   useEffect(() => {
     if (!endpointId) return
