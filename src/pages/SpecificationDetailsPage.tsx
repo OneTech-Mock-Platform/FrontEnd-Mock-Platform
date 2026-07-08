@@ -180,6 +180,8 @@ export default function SpecificationViewPage() {
 	const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
 	const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint | null>(null)
 
+	
+
 	useEffect(() => {
 		const load = async () => {
 			setLoading(true)
@@ -203,6 +205,7 @@ export default function SpecificationViewPage() {
 					const endpointsData = await endpointsResponse.json()
 					setEndpoints(endpointsData.items || [])
 				}
+
 			} catch (e) {
 				setError(e instanceof Error ? e.message : 'Erreur de chargement.')
 			} finally {
@@ -297,7 +300,6 @@ export default function SpecificationViewPage() {
 											<div className="form-control">{spec.format.toUpperCase()}</div>
 										</div>
 
-										
 										
 									</div>
 								</section>

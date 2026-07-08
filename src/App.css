@@ -606,6 +606,15 @@ button {
   color: #ffffff;
 }
 
+.btn-orange:disabled,
+.btn-orange.disabled {
+  background-color: #f7941d;
+  color: #ffffff;
+  opacity: 1;
+  filter: none;
+  cursor: not-allowed;
+}
+
 .text-orange {
   color: #f7941d;
 }
