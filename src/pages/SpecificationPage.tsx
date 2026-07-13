@@ -57,6 +57,12 @@ function formatDate(value: string) {
 	}).format(new Date(value))
 }
 
+function formatFileSize(bytes: number): string {
+	if (bytes < 1024) return `${bytes} o`
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`
+	return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
+}
+
 function authHeaders(): Record<string, string> {
 	const headers: Record<string, string> = { 'Content-Type': 'application/json' }
 	const token = getToken()
@@ -230,7 +236,7 @@ export default function SpecificationPage() {
 								</div>
 
 								<div
-									className={`import-dropzone ${dragActive ? 'is-active' : ''}`}
+									className={`import-dropzone ${dragActive ? 'is-active' : ''} ${importDraft.fileName ? 'has-file' : ''}`}
 									onDragEnter={(e) => { e.preventDefault(); setDragActive(true) }}
 									onDragOver={(e) => e.preventDefault()}
 									onDragLeave={() => setDragActive(false)}
@@ -245,16 +251,41 @@ export default function SpecificationPage() {
 										}
 									}}
 								>
-									<div className="import-dropzone__icon">
-										<svg viewBox="0 0 24 24" aria-hidden="true">
-											<path d="M19 15v4H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4h-2Zm-8-1 3.59-3.59L16 12l-5 5-5-5 1.41-1.41L11 14.59V3h2v11Z" />
-										</svg>
-									</div>
-									<strong>Glissez-déposez votre fichier</strong>
-									<span>OpenAPI YAML ou JSON</span>
-									<button type="button" className="btn btn-orange import-dropzone__button">
-										Choisir un fichier
-									</button>
+									{importDraft.fileName ? (
+										<>
+											<div className="import-dropzone__icon import-dropzone__icon--file">
+												<svg viewBox="0 0 24 24" aria-hidden="true">
+													<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+												</svg>
+											</div>
+											<div className="import-dropzone__file-info">
+												<strong className="import-dropzone__file-name">{importDraft.name}</strong>
+												<span className="import-dropzone__file-meta">
+													<span className={`spec-badge spec-badge--${importDraft.format}`}>
+														{importDraft.format.toUpperCase()}
+													</span>
+													<span className="import-dropzone__file-size">{formatFileSize(new Blob([importDraft.content]).size)}</span>
+												</span>
+												<code className="import-dropzone__file-fullname">{importDraft.fileName}</code>
+											</div>
+											<button type="button" className="btn btn-outline-secondary import-dropzone__button">
+												Changer de fichier
+											</button>
+										</>
+									) : (
+										<>
+											<div className="import-dropzone__icon">
+												<svg viewBox="0 0 24 24" aria-hidden="true">
+													<path d="M19 15v4H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4h-2Zm-8-1 3.59-3.59L16 12l-5 5-5-5 1.41-1.41L11 14.59V3h2v11Z" />
+												</svg>
+											</div>
+											<strong>Glissez-déposez votre fichier</strong>
+											<span>OpenAPI YAML ou JSON</span>
+											<button type="button" className="btn btn-orange import-dropzone__button">
+												Choisir un fichier
+											</button>
+										</>
+									)}
 									<input
 										ref={fileInputRef}
 										type="file"

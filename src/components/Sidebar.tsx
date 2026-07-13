@@ -6,7 +6,7 @@ const navigationItems = [
     { label:'Dashboard', icon: 'M3 4h18v2H3zm0 4h18v2H3zm0 4h12v2H3zm0 4h16v2H3z' },
 	{ label: 'Specifications', icon: 'M4 6h7l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z' },
 	/* { label: 'Mock Servers', icon: 'M4 6h16v12H4zm2 2v8h12V8z' }, */
-	{ label: 'AI Assistant', icon: 'M12 3a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-1v1a4 4 0 0 1-4 4 4 4 0 0 1-4-4v-1H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3h1V7a4 4 0 0 1 4-4Zm0 2a2 2 0 0 0-2 2v1h4V7a2 2 0 0 0-2-2Zm-5 5a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h1v-7H7Zm10 0h-1v7h1a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1Z' },
+	/*{ label: 'AI Assistant', icon: 'M12 3a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-1v1a4 4 0 0 1-4 4 4 4 0 0 1-4-4v-1H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3h1V7a4 4 0 0 1 4-4Zm0 2a2 2 0 0 0-2 2v1h4V7a2 2 0 0 0-2-2Zm-5 5a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h1v-7H7Zm10 0h-1v7h1a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1Z' },*/
 ]
 
 function Sidebar() {
