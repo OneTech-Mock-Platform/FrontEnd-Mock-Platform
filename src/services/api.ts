@@ -120,15 +120,3 @@ export async function resetPasswordWithToken(resetToken: string, newPassword: st
   if (!res.ok) throw new Error(extractErrorMessage(data));
   return data;
 }
-
-
-export async function setDefaultScenario(scenarioId: string): Promise<any> {
-  const token = getToken();
-  const res = await fetch(`${API_BASE}/scenarios/${scenarioId}/set-default`, {
-    method: 'PATCH',
-    headers: { 'Authorization': `Bearer ${token}` },
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Failed to set default scenario');
-  return data;
-}

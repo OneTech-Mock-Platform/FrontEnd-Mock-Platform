@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
-import { getToken, setDefaultScenario } from '../services/api'
+import { getToken } from '../services/api'
 
 type Scenario = {
   id: string
@@ -29,60 +29,7 @@ export default function ScenarioPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)  
-  const [settingDefault, setSettingDefault] = useState<string | null>(null)
-  const [regenerating, setRegenerating] = useState(false)
-
-  const specId = scenarios.length > 0 ? scenarios[0]?.endpoint?.specId : undefined
-
-  const handleRegenerateWithAI = async () => {
-    if (!specId) return
-    setRegenerating(true)
-    try {
-      const token = getToken()
-      const res = await fetch(`/api/mock-engine/regenerate/${specId}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
-      const data = await res.json() as { updated: number }
-      // Recharger les scénarios
-      const headers: Record<string, string> = {}
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-      const scenariosRes = await fetch(`/api/scenarios/endpoint/${endpointId}`, { headers })
-      if (scenariosRes.ok) {
-        const scenariosData = await scenariosRes.json() as Scenario[]
-        setScenarios(scenariosData)
-      }
-    } catch (e) {
-      console.error('Failed to regenerate with AI:', e)
-    } finally {
-      setRegenerating(false)
-    }
-  }
-
-  const handleSetDefault = async (scenarioId: string) => {
-    setSettingDefault(scenarioId)
-    try {
-      await setDefaultScenario(scenarioId)
-      // Reload scenarios to get updated isDefault flags
-      const token = getToken()
-      const headers: Record<string, string> = {}
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-      const res = await fetch(`/api/scenarios/endpoint/${endpointId}`, { headers })
-      if (res.ok) {
-        const data = await res.json() as Scenario[]
-        setScenarios(data)
-      }
-    } catch (e) {
-      console.error('Failed to set default scenario:', e)
-    } finally {
-      setSettingDefault(null)
-    }
-  }
+  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)
 
   useEffect(() => {
     if (!endpointId) return
@@ -96,8 +43,8 @@ export default function ScenarioPage() {
         }
         const res = await fetch(`/api/scenarios/endpoint/${endpointId}`, { headers })
         if (!res.ok) throw new Error('Impossible de charger les scénarios.')
-        const data = await res.json() as Scenario[]
-        setScenarios(data)
+        const data = await res.json() as { items: Scenario[] }
+        setScenarios(data.items)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Erreur.')
       } finally {
