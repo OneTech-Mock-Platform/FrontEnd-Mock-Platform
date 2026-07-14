@@ -233,7 +233,7 @@ export default function SignInPage() {
             )}
 
             {!verificationStep ? (
-              <form onSubmit={handleLoginSubmit} className="space-y-5">
+              <form onSubmit={handleLoginSubmit} className="space-y-5" noValidate>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="email">
                     Adresse e-mail
@@ -247,7 +247,6 @@ export default function SignInPage() {
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="exemple@email.com"
                       autoComplete="email"
-                      required
                     />
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
                   </div>
@@ -266,7 +265,6 @@ export default function SignInPage() {
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="••••••••"
                       autoComplete="current-password"
-                      required
                     />
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
                     <button
@@ -316,7 +314,7 @@ export default function SignInPage() {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleVerifySubmit} className="space-y-6">
+              <form onSubmit={handleVerifySubmit} className="space-y-6" noValidate>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 ml-1">
                     Code de vérification à 6 chiffres

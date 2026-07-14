@@ -21,15 +21,10 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
 
-    if (password !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const result = await registerUser(name, email, password);
+      const result = await registerUser(name, email, password, confirmPassword);
       login(result.user);
       navigate("/specifications");
     } catch (err: any) {
@@ -74,7 +69,7 @@ export default function SignUpPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <div className="space-y-2">
                 <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="name">Username</label>
                 <div className="relative">

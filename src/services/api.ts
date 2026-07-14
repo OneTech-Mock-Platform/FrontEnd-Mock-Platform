@@ -12,11 +12,16 @@ function extractErrorMessage(data: any): string {
   return 'Une erreur est survenue';
 }
 
-export async function registerUser(name: string, email: string, password: string) {
+export async function registerUser(
+  name: string,
+  email: string,
+  password: string,
+  confirmPassword: string,
+) {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify({ name, email, password, confirmPassword }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(extractErrorMessage(data));
