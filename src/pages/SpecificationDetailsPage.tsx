@@ -178,7 +178,6 @@ export default function SpecificationViewPage() {
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
 	const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
-	const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint | null>(null)
 
 	
 
@@ -383,7 +382,7 @@ export default function SpecificationViewPage() {
 											filteredEndpoints.map(endpoint => {
 												const colors = methodColors[endpoint.method] || methodColors.GET
 												return (
-													<div key={endpoint.id} className="spec-endpoint-item" onClick={() => setSelectedEndpoint(endpoint)}>
+													<div key={endpoint.id} className="spec-endpoint-item" onClick={() => navigate(`/specifications/${spec.id}/reference/${endpoint.id}`)}>
 														<span
 															className="spec-method-badge"
 															style={{
@@ -409,91 +408,6 @@ export default function SpecificationViewPage() {
 					</div>
 				</main>
 			</div>
-
-			{/* Endpoint Detail Modal */}
-			{selectedEndpoint && (
-				<div className="spec-modal-overlay" onClick={() => setSelectedEndpoint(null)}>
-					<div className="spec-modal" onClick={(e) => e.stopPropagation()}>
-						<div className="spec-modal__icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-							<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-								<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-							</svg>
-						</div>
-						<h3 className="spec-modal__title text-lg text-orange">Détails de l'endpoint</h3>
-						<div className="spec-modal__body">
-							<div style={{ marginBottom: '12px' }}>
-								<strong>Méthode:</strong> {selectedEndpoint.method}
-							</div>
-							<div style={{ marginBottom: '12px' }}>
-								<strong>Path:</strong> <code>{selectedEndpoint.path}</code>
-							</div>
-							{selectedEndpoint.summary && (
-								<div style={{ marginBottom: '12px' }}>
-									<strong>Summary:</strong> {selectedEndpoint.summary}
-								</div>
-							)}
-						
-
-{/* 							{selectedEndpoint.responses?.responses?.length ? (
-  <div style={{ marginBottom: '12px' }}>
-    <strong>Réponses:</strong>
-
-    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {selectedEndpoint.responses.responses.map((res, index) => (
-        <div
-          key={index}
-          style={{
-            padding: '8px 10px',
-            border: '1px solid #e6e8f0',
-            borderRadius: '6px',
-            background: '#f9fafb'
-          }}
-        >
-          <div>
-            <strong>Status:</strong> {res.statusCode}
-          </div>
-
-          <div>
-            <strong>Description:</strong> {res.description}
-          </div>
-
-        
-        </div>
-      ))}
-    </div>
-  </div>
-)  : null}*/}
-						</div>
-						{/* <div className="spec-modal__actions">
-							<button className="btn btn-secondary" onClick={() => setSelectedEndpoint(null)}>
-								Fermer
-							</button>
-						</div> */}
-
-
-	{/* <!-- Endpoint Detail Modal Actions -->*/}
-<div className="spec-modal__actions">
-  <button
-    className="btn btn-orange"
-    onClick={() => {
-      navigate(`/endpoints/${selectedEndpoint!.id}/scenarios`)
-      setSelectedEndpoint(null)
-    }}
-  >
-    Voir les scénarios
-  </button>
-  <button
-    className="btn btn-outline-secondary"
-    onClick={() => setSelectedEndpoint(null)}
-  >
-    Fermer
-  </button>
-</div>
-
-
-					</div>
-				</div>
-			)}
 		</div>
 	)
 }

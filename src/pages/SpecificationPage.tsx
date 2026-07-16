@@ -41,7 +41,7 @@ const emptyDraft: SpecificationDraft = {
 }
 
 const apiBaseUrl = '/api/specifications'
-const PAGE_SIZE = 8
+const PAGE_SIZE = 6
 
 function resolveFormat(fileName: string): SpecificationFormat {
 	const extension = fileName.split('.').pop()?.toLowerCase()
@@ -179,6 +179,15 @@ export default function SpecificationPage() {
 		}
 	}
 
+	useEffect(() => {
+		if (!deleteTarget) return
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') setDeleteTarget(null)
+		}
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [deleteTarget])
+
 	const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
 		event.preventDefault()
 		setDragActive(false)
@@ -201,18 +210,29 @@ export default function SpecificationPage() {
 					<div className="spec-page">
 
 						{/* ── Header ── */}
-						<div className="spec-page__header">
-						
+						<header className="spec-page__header">
+							<div className="spec-page__header-text">
+								<p className="section-kicker text-orange mb-1">Spécifications</p>
+								<h1 className="spec-page__title">Vos spécifications OpenAPI</h1>
+								<p className="spec-page__subtitle">
+									Importez, consultez et gérez vos fichiers de spécification API en un seul endroit.
+								</p>
+							</div>
+
 							<button
 								type="button"
-								className="btn btn-orange"
+								className={`spec-import-trigger ${showImport ? 'is-active' : ''}`}
 								onClick={() => setShowImport((v) => !v)}
+								aria-expanded={showImport}
 							>
-								{showImport ? '✕ Fermer' : '+ Importer une spécification'}
+								<svg className="spec-import-trigger__icon" viewBox="0 0 24 24" aria-hidden="true">
+									<path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6z" />
+								</svg>
+								{showImport ? 'Fermer' : 'Importer une spécification'}
 							</button>
-						</div>
+						</header>
 
-						
+
 
 						{/* ── Alerts ── */}
 						{error ? <div className="alert alert-danger">{error}</div> : null}
@@ -316,10 +336,13 @@ export default function SpecificationPage() {
 						<section className="spec-card spec-table-card">
 							<div className="panel-header">
 								<div>
-									
-									<h2 className="panel-title mb-0 text-orange">Spécifications importées</h2>
+									<h2 className="panel-title mb-0" style={{color: '#e47f00'}}>
+										Toutes les spécifications
+									</h2>
+									<p className="spec-table-count-label">
+								{/* 		{specs.length} spécification{specs.length > 1 ? 's' : ''} au total */}
+									</p>
 								</div>
-								
 							</div>
 
 							{loading ? (
@@ -328,8 +351,17 @@ export default function SpecificationPage() {
 									Chargement des spécifications…
 								</div>
 							) : specs.length === 0 ? (
-								<div className="spec-empty">
-									Aucune spécification importée. Importez un fichier YAML ou JSON pour commencer.
+								<div className="spec-empty spec-empty--cta">
+									<div className="spec-empty__icon">
+										<svg viewBox="0 0 24 24" aria-hidden="true">
+											<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
+										</svg>
+									</div>
+									<strong>Aucune spécification importée</strong>
+									<p>Importez un fichier YAML ou JSON pour commencer à explorer vos APIs.</p>
+									<button type="button" className="btn btn-orange" onClick={() => setShowImport(true)}>
+										+ Importer une spécification
+									</button>
 								</div>
 							) : (
 								<>
@@ -337,11 +369,11 @@ export default function SpecificationPage() {
 										<table className="spec-table">
 											<thead>
 												<tr>
-													<th>Nom</th>
-													<th>Fichier</th>
-													<th>Format</th>
-													<th>Date</th>
-													<th className="spec-table__actions-col">Actions</th>
+													<th scope="col">Nom</th>
+													<th scope="col">Fichier</th>
+													<th scope="col">Format</th>
+													<th scope="col">Date</th>
+													<th scope="col" className="spec-table__actions-col">Actions</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -361,39 +393,39 @@ export default function SpecificationPage() {
 														<td className="spec-table__date">{formatDate(spec.createdAt)}</td>
 														
 														<td>
-															<div className="spec-table__action-btns">
+															<div className="spec-table__action-btns" role="group" aria-label={`Actions pour ${spec.name}`}>
 																<button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--view"
 																	title="Voir les détails"
-																	onClick={() => navigate(`/specifications/${spec.id}`)}
+																	aria-label={`Voir les détails de ${spec.name}`}
+																	onClick={() => navigate(`/specifications/${spec.id}/reference`)}
 																>
-																	<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+																	<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
 																		<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
 																	</svg>
-																	<span>Voir</span>
 																</button>
 																<button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--edit"
 																	title="Modifier la spécification"
+																	aria-label={`Modifier ${spec.name}`}
 																	onClick={() => navigate(`/specifications/${spec.id}/edit`)}
 																>
-																	<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+																	<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
 																		<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
 																	</svg>
-																	<span>Modifier</span>
 																</button>
 																<button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--delete"
 																	title="Supprimer la spécification"
+																	aria-label={`Supprimer ${spec.name}`}
 																	onClick={() => setDeleteTarget(spec)}
 																>
-																	<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+																	<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
 																		<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
 																	</svg>
-																	<span>Supprimer</span>
 																</button>
 															</div>
 														</td>
@@ -421,6 +453,8 @@ export default function SpecificationPage() {
 														type="button"
 														className={`spec-page-num ${currentPage === page ? 'is-active' : ''}`}
 														onClick={() => setCurrentPage(page)}
+														aria-label={`Page ${page}`}
+														aria-current={currentPage === page ? 'page' : undefined}
 													>
 														{page}
 													</button>
@@ -449,13 +483,19 @@ export default function SpecificationPage() {
 			{/* ── Delete confirmation modal ── */}
 			{deleteTarget ? (
 				<div className="spec-modal-overlay" onClick={() => setDeleteTarget(null)}>
-					<div className="spec-modal" onClick={(e) => e.stopPropagation()}>
+					<div
+						className="spec-modal"
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="delete-modal-title"
+						onClick={(e) => e.stopPropagation()}
+					>
 						<div className="spec-modal__icon spec-modal__icon--danger">
 							<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
 								<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
 							</svg>
 						</div>
-						<h3 className="spec-modal__title">Confirmer la suppression</h3>
+						<h3 className="spec-modal__title" id="delete-modal-title">Confirmer la suppression</h3>
 						<p className="spec-modal__body">
 							Vous êtes sur le point de supprimer définitivement <strong>{deleteTarget.name}</strong>.<br />
 							Cette action est irréversible.
@@ -466,14 +506,15 @@ export default function SpecificationPage() {
 								className="btn btn-outline-secondary"
 								onClick={() => setDeleteTarget(null)}
 							>
-							annuler
+								Annuler
 							</button>
 							<button
 								type="button"
 								className="btn btn-danger"
 								onClick={handleDeleteConfirm}
+								disabled={saving}
 							>
-								supprimer
+								{saving ? 'Suppression…' : 'Supprimer'}
 							</button>
 						</div>
 					</div>

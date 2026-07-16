@@ -1,5 +1,6 @@
 import logo from '../assets/images/logo.png'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const navigationItems = [
     { label:'Dashboard', icon: 'M3 4h18v2H3zm0 4h18v2H3zm0 4h12v2H3zm0 4h16v2H3z' },
@@ -7,13 +8,25 @@ const navigationItems = [
 ]
 
 function Sidebar() {
+	const { user, logout } = useAuth()
+	const navigate = useNavigate()
+
+	const initials = (user?.name || user?.email || 'U')
+		.split(' ')
+		.map((part) => part.charAt(0))
+		.slice(0, 2)
+		.join('')
+		.toUpperCase()
+
+	const handleLogout = () => {
+		logout()
+		navigate('/signIn')
+	}
+
 	return (
 		<aside className="app-sidebar">
 			<div className="sidebar-brand">
-			{/* 	<img className="sidebar-brand__logo" src={logo} alt="OneTech logo" /> */}
-			<div className="sidebar-brand__text">
-					<strong>OneTech</strong>
-				</div>
+				<img className="sidebar-brand__logo" src={logo} alt="OneTech logo" />
 			</div>
 
 			<div className="sidebar-divider" />
@@ -36,6 +49,26 @@ function Sidebar() {
 			</nav>
 
 			<div className="sidebar-footer">
+				<div className="sidebar-divider" />
+
+				<button
+					type="button"
+					className="sidebar-profile"
+					onClick={() => navigate('/profile')}
+				>
+					<span className="sidebar-profile__avatar">{initials}</span>
+					<span className="sidebar-profile__info">
+						<strong className="sidebar-profile__name">{user?.name || 'Utilisateur'}</strong>
+						<span className="sidebar-profile__email">{user?.email || ''}</span>
+					</span>
+				</button>
+
+				<button type="button" className="sidebar-logout" onClick={handleLogout}>
+					<svg className="sidebar-logout__icon" viewBox="0 0 24 24" aria-hidden="true">
+						<path d="M16 17v-3H9v-4h7V7l5 5-5 5ZM14 2a2 2 0 0 1 2 2v2h-2V4H5v16h9v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
+					</svg>
+					Déconnexion
+				</button>
 			</div>
 		</aside>
 	)

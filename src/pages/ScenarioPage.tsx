@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { getToken } from '../services/api'
+import { NOISY_HEADERS, STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
 
 type Scenario = {
   id: string
@@ -13,14 +14,9 @@ type Scenario = {
   mockContent?: string
   endpoint?: {
     specId: string
+    path: string
+    method: string
   }
-}
-
-const STATUS_COLORS: Record<string, { color: string; bg: string; border: string }> = {
-  '2': { color: '#15803d', bg: 'rgba(34,197,94,0.08)',  border: 'rgba(34,197,94,0.25)'  },
-  '3': { color: '#1d4ed8', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' },
-  '4': { color: '#a16207', bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.25)'  },
-  '5': { color: '#b91c1c', bg: 'rgba(239,68,68,0.08)',  border: 'rgba(239,68,68,0.25)'  },
 }
 
 export default function ScenarioPage() {
@@ -30,6 +26,33 @@ export default function ScenarioPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null)
+  const [activeTab, setActiveTab] = useState<'stored' | 'live'>('stored')
+  const [pathParams, setPathParams] = useState<Record<string, string>>({})
+  const [testResult, setTestResult] = useState<TestResult | null>(null)
+  const [testingScenarioId, setTestingScenarioId] = useState<string | null>(null)
+
+  const specId = scenarios[0]?.endpoint?.specId
+  const endpointPath = scenarios[0]?.endpoint?.path
+  const endpointMethod = scenarios[0]?.endpoint?.method
+  const dynamicParamNames = endpointPath
+    ? Array.from(new Set((endpointPath.match(/\{[^}]+\}/g) ?? []).map((s) => s.slice(1, -1))))
+    : []
+
+  async function handleTest(sc: Scenario) {
+    setSelectedScenario(sc)
+    setActiveTab('live')
+    if (!endpointPath || !endpointMethod || !specId) return
+    setTestingScenarioId(sc.id)
+    const result = await runMockTest({
+      specId,
+      method: endpointMethod,
+      path: endpointPath,
+      pathParams,
+      scenarioId: sc.id,
+    })
+    setTestResult(result)
+    setTestingScenarioId(null)
+  }
 
   useEffect(() => {
     if (!endpointId) return
@@ -90,6 +113,29 @@ export default function ScenarioPage() {
               Retour
             </button>
 
+            {dynamicParamNames.length > 0 && (
+              <section className="spec-card" style={{ marginBottom: 20 }}>
+                <div className="panel-header">
+                  <h2 className="panel-title mb-0">Paramètres du chemin</h2>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                  {dynamicParamNames.map((name) => (
+                    <label key={name} style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '0.82rem' }}>
+                      {name}
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="test-id"
+                        value={pathParams[name] ?? ''}
+                        onChange={(e) => setPathParams((prev) => ({ ...prev, [name]: e.target.value }))}
+                        style={{ minWidth: 160 }}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <section className="spec-card">
               <div className="panel-header">
                 <div>
@@ -145,14 +191,30 @@ export default function ScenarioPage() {
                        
 
       
-                        {/* Bouton Voir mock */}
+                        {/* Bouton Voir mock : affiche la donnée stockée en base, sans appel réseau */}
                         <button
                           type="button"
                           className="btn btn-orange"
+                          title="Affiche la donnée mock stockée en base (pas d'appel réseau)"
                           style={{ fontSize: '0.78rem', padding: '5px 12px' }}
-                          onClick={() => setSelectedScenario(sc)}
+                          onClick={() => {
+                            setSelectedScenario(sc)
+                            setActiveTab('stored')
+                          }}
                         >
-                          Voir mock
+                          📦 Voir le mock stocké
+                        </button>
+
+                        {/* Bouton Tester : envoie une vraie requête HTTP au mock server */}
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          disabled={testingScenarioId === sc.id}
+                          title="Envoie une vraie requête HTTP au mock server et affiche la réponse reçue"
+                          style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+                          onClick={() => void handleTest(sc)}
+                        >
+                          {testingScenarioId === sc.id ? 'Test en cours…' : '🌐 Tester en direct'}
                         </button>
                       </div>
                     )
@@ -161,31 +223,139 @@ export default function ScenarioPage() {
               )}
             </section>
 
-            {/* Panneau droit qui affiche le mockContent */}
-            <section className="spec-card" style={{ marginTop: 20 }}>
-              <div className="panel-header">
-                <h2 className="panel-title mb-0">Données Mock</h2>
-              </div>
-              {selectedScenario?.mockContent ? (
-                <pre style={{
-                  background: '#0f172a',
-                  color: '#e2e8f0',
-                  borderRadius: 10,
-                  padding: 16,
-                  fontSize: '0.78rem',
-                  lineHeight: 1.7,
-                  overflow: 'auto',
-                  maxHeight: 450,
-                  fontFamily: "'Fira Code', monospace",
-                }}>
-                  {selectedScenario.mockContent}
-                </pre>
-              ) : (
-                <div className="spec-empty">
-                  Aucune donnée mock disponible pour ce scénario.
+            {/* Panneau unique : détails du scénario sélectionné, avec onglets Stocké / Testé en direct */}
+            {selectedScenario && (
+              <section className="spec-card" style={{ marginTop: 20 }}>
+                <div className="panel-header">
+                  <h2 className="panel-title mb-0">Détails du scénario — {selectedScenario.statusCode}</h2>
                 </div>
-              )}
-            </section>
+
+                <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                  <button
+                    type="button"
+                    className={activeTab === 'stored' ? 'btn btn-orange' : 'btn btn-outline-secondary'}
+                    style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+                    onClick={() => setActiveTab('stored')}
+                  >
+                    📦 Stocké
+                  </button>
+                  <button
+                    type="button"
+                    className={activeTab === 'live' ? 'btn btn-orange' : 'btn btn-outline-secondary'}
+                    style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+                    onClick={() => setActiveTab('live')}
+                  >
+                    🌐 Testé en direct
+                  </button>
+                </div>
+
+                {activeTab === 'stored' ? (
+                  <>
+                    <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px' }}>
+                      Contenu enregistré en base pour ce scénario — aucun appel réseau, c'est ce que le mock server renverra.
+                    </p>
+                    {selectedScenario.mockContent ? (
+                      <pre style={{
+                        background: '#0f172a',
+                        color: '#e2e8f0',
+                        borderRadius: 10,
+                        padding: 16,
+                        fontSize: '0.78rem',
+                        lineHeight: 1.7,
+                        overflow: 'auto',
+                        maxHeight: 450,
+                        fontFamily: "'Fira Code', monospace",
+                      }}>
+                        {selectedScenario.mockContent}
+                      </pre>
+                    ) : (
+                      <div className="spec-empty">
+                        Aucune donnée mock disponible pour ce scénario.
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px' }}>
+                      Réponse réellement reçue d'une requête HTTP envoyée au mock server (<code>/mock/...</code>).
+                    </p>
+
+                    {testResult?.scenarioId !== selectedScenario.id ? (
+                      <div className="spec-empty" style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
+                        Aucun test lancé pour ce scénario pour l'instant.
+                        <button
+                          type="button"
+                          className="btn btn-orange"
+                          disabled={testingScenarioId === selectedScenario.id}
+                          style={{ fontSize: '0.78rem', padding: '5px 12px' }}
+                          onClick={() => void handleTest(selectedScenario)}
+                        >
+                          {testingScenarioId === selectedScenario.id ? 'Test en cours…' : '🌐 Tester en direct'}
+                        </button>
+                      </div>
+                    ) : testResult?.error ? (
+                      <div className="alert alert-danger">{testResult.error}</div>
+                    ) : (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, flexWrap: 'wrap' }}>
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: '#1c1c3c' }}>
+                            {endpointMethod} {endpointPath ? resolvePath(endpointPath, pathParams) : ''}
+                          </span>
+                          {typeof testResult?.status === 'number' && (() => {
+                            const meta = STATUS_COLORS[String(testResult.status)[0]] ?? STATUS_COLORS['5']
+                            return (
+                              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: meta.color }}>
+                                {testResult.status}
+                              </span>
+                            )
+                          })()}
+                          {typeof testResult?.timeMs === 'number' && (
+                            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{testResult.timeMs} ms</span>
+                          )}
+                        </div>
+
+                        {(() => {
+                          const relevantHeaders = Object.entries(testResult?.headers ?? {}).filter(
+                            ([key]) => !NOISY_HEADERS.has(key.toLowerCase()),
+                          )
+                          if (relevantHeaders.length === 0) return null
+                          return (
+                            <div style={{ marginBottom: 12, fontSize: '0.78rem', color: '#475569' }}>
+                              {relevantHeaders.map(([key, value]) => (
+                                <div key={key}>
+                                  <strong>{key}</strong>: {value}
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        })()}
+
+                        <pre style={{
+                          background: '#0f172a',
+                          color: '#e2e8f0',
+                          borderRadius: 10,
+                          padding: 16,
+                          fontSize: '0.78rem',
+                          lineHeight: 1.7,
+                          overflow: 'auto',
+                          maxHeight: 450,
+                          fontFamily: "'Fira Code', monospace",
+                        }}>
+                          {(() => {
+                            if (!testResult?.body) return '(pas de contenu)'
+                            try {
+                              return JSON.stringify(JSON.parse(testResult.body), null, 2)
+                            } catch {
+                              return testResult.body
+                            }
+                          })()}
+                        </pre>
+                      </>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
           </div>
         </main>
       </div>

@@ -1,0 +1,66 @@
+export type TestResult = {
+  scenarioId: string
+  status?: number
+  headers?: Record<string, string>
+  body?: string
+  timeMs?: number
+  error?: string
+}
+
+export const STATUS_COLORS: Record<string, { color: string; bg: string; border: string }> = {
+  '2': { color: '#15803d', bg: 'rgba(34,197,94,0.08)',  border: 'rgba(34,197,94,0.25)'  },
+  '3': { color: '#1d4ed8', bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.25)' },
+  '4': { color: '#a16207', bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.25)'  },
+  '5': { color: '#b91c1c', bg: 'rgba(239,68,68,0.08)',  border: 'rgba(239,68,68,0.25)'  },
+}
+
+export const NOISY_HEADERS = new Set([
+  'connection',
+  'etag',
+  'vary',
+  'x-powered-by',
+  'date',
+  'content-length',
+  'keep-alive',
+  'transfer-encoding',
+  'access-control-allow-credentials',
+  'access-control-allow-origin',
+])
+
+export function resolvePath(path: string, params: Record<string, string>): string {
+  return path
+    .split('/')
+    .map((seg) =>
+      seg.startsWith('{') && seg.endsWith('}')
+        ? encodeURIComponent(params[seg.slice(1, -1)] || 'test-id')
+        : seg,
+    )
+    .join('/')
+}
+
+export async function runMockTest(params: {
+  specId: string
+  method: string
+  path: string
+  pathParams: Record<string, string>
+  scenarioId: string
+}): Promise<TestResult> {
+  const { specId, method, path, pathParams, scenarioId } = params
+  const url = `/mock/${specId}${resolvePath(path, pathParams)}`
+  const start = performance.now()
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { Prefer: `scenario=${scenarioId}` },
+    })
+    const timeMs = Math.round(performance.now() - start)
+    const text = await res.text()
+    const responseHeaders: Record<string, string> = {}
+    res.headers.forEach((v, k) => {
+      responseHeaders[k] = v
+    })
+    return { scenarioId, status: res.status, headers: responseHeaders, body: text, timeMs }
+  } catch {
+    return { scenarioId, error: 'Impossible de contacter le mock server (backend démarré ?).' }
+  }
+}
