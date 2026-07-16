@@ -1335,17 +1335,120 @@ button {
 .spec-back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: var(--color-text-muted, #6b7280);
+  gap: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text, #1c1c3c);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 6px 16px 6px 6px;
+  border-radius: 999px;
   margin-bottom: 12px;
-  transition: color 0.15s;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.spec-back-btn:hover { color: var(--color-orange, #e76f23); }
+.spec-back-btn:hover {
+  background: rgba(231, 111, 35, 0.08);
+  color: var(--color-orange, #e76f23);
+}
+.spec-back-btn:focus-visible {
+  outline: 2px solid var(--color-orange, #e76f23);
+  outline-offset: 2px;
+}
+
+.spec-back-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(28, 28, 60, 0.06);
+  color: inherit;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+.spec-back-btn__icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.spec-back-btn:hover .spec-back-btn__icon {
+  background: rgba(231, 111, 35, 0.16);
+}
+
+/* ── Edit page header (card) ── */
+.spec-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #fbfbff 100%);
+  border: 1px solid #e6e8f0;
+  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.05);
+}
+
+.spec-edit-header .spec-back-btn {
+  margin-bottom: 0;
+}
+
+.spec-edit-header__right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+/* ── Save button ── */
+.spec-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f7941d 0%, #e05f00 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(247, 148, 29, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+.spec-save-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+.spec-save-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(247, 148, 29, 0.34);
+}
+.spec-save-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.spec-save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.spec-save-btn:focus-visible {
+  outline: 2px solid #92400e;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .spec-edit-header {
+    align-items: stretch;
+  }
+  .spec-edit-header__right {
+    justify-content: space-between;
+  }
+}
 
 .spec-view-header { display: flex; flex-direction: column; }
 .spec-view-header__main {

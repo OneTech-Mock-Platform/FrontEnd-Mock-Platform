@@ -187,28 +187,41 @@ export default function SpecificationEditPage() {
 						{/* ── En-tête ── */}
 						<div className="spec-edit-header">
 							{/* ── Retour ── */}
-						<button type="button" className="spec-back-btn" onClick={() => navigate('/specifications')}>
-							<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-								<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-							</svg>
-							Retour aux spécifications
-						</button>
+							<button type="button" className="spec-back-btn" onClick={() => navigate('/specifications')}>
+								<span className="spec-back-btn__icon">
+									<svg viewBox="0 0 24 24" aria-hidden="true">
+										<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+									</svg>
+								</span>
+								Retour aux spécifications
+							</button>
 							<div className="spec-edit-header__right">
-								{saveSuccess ? (
-									<span className="spec-saved-badge">
-										<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-											<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-										</svg>
-										Enregistré
-									</span>
-								) : null}
+								<span aria-live="polite">
+									{saveSuccess ? (
+										<span className="spec-saved-badge">
+											<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+												<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+											</svg>
+											Enregistré
+										</span>
+									) : null}
+								</span>
 								<button
 									type="button"
-									className="btn btn-orange"
+									className="spec-save-btn"
 									onClick={handleSave}
 									disabled={saving}
 								>
-									{saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
+									{saving ? (
+										'Enregistrement…'
+									) : (
+										<>
+											<svg viewBox="0 0 24 24" aria-hidden="true">
+												<path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4Zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6ZM15 9H6V5h9v4Z" />
+											</svg>
+											Enregistrer les modifications
+										</>
+									)}
 								</button>
 							</div>
 						</div>
@@ -218,7 +231,7 @@ export default function SpecificationEditPage() {
 						{/* ── Métadonnées ── */}
 						<section className="spec-card">
 							<div className="panel-header">
-								<h2 className="panel-title text-orange mb-0">Détails de la spécification</h2>
+								<h2 className="panel-title mb-0" style={{ color: '#e47f00' }}>Détails de la spécification</h2>
 							</div>
 							<div className="spec-edit-meta-grid">
 								<label className="form-group">
@@ -308,11 +321,20 @@ export default function SpecificationEditPage() {
 						<div className="spec-edit-footer">
 							<button
 								type="button"
-								className="btn btn-orange"
+								className="spec-save-btn"
 								onClick={handleSave}
 								disabled={saving}
 							>
-								{saving ? 'Enregistrement…' : 'Enregistrer les modifications'}
+								{saving ? (
+									'Enregistrement…'
+								) : (
+									<>
+										<svg viewBox="0 0 24 24" aria-hidden="true">
+											<path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4Zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6ZM15 9H6V5h9v4Z" />
+										</svg>
+										Enregistrer les modifications
+									</>
+								)}
 							</button>
 						</div>
 
