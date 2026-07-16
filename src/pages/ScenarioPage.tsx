@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
+import RequestPayloadBlock from '../components/RequestPayloadBlock'
 import { getToken } from '../services/api'
 import { NOISY_HEADERS, STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
 
@@ -12,6 +13,7 @@ type Scenario = {
   name?: string
   isDefault: boolean
   mockContent?: string
+  requestExample?: Record<string, unknown> | null
   endpoint?: {
     specId: string
     path: string
@@ -49,6 +51,7 @@ export default function ScenarioPage() {
       path: endpointPath,
       pathParams,
       scenarioId: sc.id,
+      requestExample: sc.requestExample,
     })
     setTestResult(result)
     setTestingScenarioId(null)
@@ -251,9 +254,10 @@ export default function ScenarioPage() {
 
                 {activeTab === 'stored' ? (
                   <>
-                    <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px' }}>
-                      Contenu enregistré en base pour ce scénario — aucun appel réseau, c'est ce que le mock server renverra.
-                    </p>
+                    <span className="spec-badge" style={{ display: 'inline-flex', marginBottom: 12 }}>
+                      📦 Aperçu statique — aucun appel réseau
+                    </span>
+                    <RequestPayloadBlock requestExample={selectedScenario.requestExample} statusCode={selectedScenario.statusCode} />
                     {selectedScenario.mockContent ? (
                       <pre style={{
                         background: '#0f172a',
@@ -279,6 +283,8 @@ export default function ScenarioPage() {
                     <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px' }}>
                       Réponse réellement reçue d'une requête HTTP envoyée au mock server (<code>/mock/...</code>).
                     </p>
+
+                    <RequestPayloadBlock requestExample={selectedScenario.requestExample} statusCode={selectedScenario.statusCode} />
 
                     {testResult?.scenarioId !== selectedScenario.id ? (
                       <div className="spec-empty" style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>

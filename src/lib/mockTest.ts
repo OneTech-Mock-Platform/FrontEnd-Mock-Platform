@@ -27,6 +27,14 @@ export const NOISY_HEADERS = new Set([
   'access-control-allow-origin',
 ])
 
+// Codes pour lesquels la cause d'échec est déductible du schéma de la requête (champ manquant, format invalide...).
+// Pour les autres (401/403/404/500/503...), la cause est côté auth/droits/ressource/serveur — pas du schéma.
+const DETERMINABLE_CAUSE_CODES = new Set([200, 201, 202, 400, 422])
+
+export function isCauseDeterminable(statusCode: number): boolean {
+  return DETERMINABLE_CAUSE_CODES.has(statusCode)
+}
+
 export function resolvePath(path: string, params: Record<string, string>): string {
   return path
     .split('/')
@@ -44,14 +52,20 @@ export async function runMockTest(params: {
   path: string
   pathParams: Record<string, string>
   scenarioId: string
+  requestExample?: Record<string, unknown> | null
 }): Promise<TestResult> {
-  const { specId, method, path, pathParams, scenarioId } = params
+  const { specId, method, path, pathParams, scenarioId, requestExample } = params
   const url = `/mock/${specId}${resolvePath(path, pathParams)}`
+  const hasBody = requestExample !== undefined && requestExample !== null
   const start = performance.now()
   try {
     const res = await fetch(url, {
       method,
-      headers: { Prefer: `scenario=${scenarioId}` },
+      headers: {
+        Prefer: `scenario=${scenarioId}`,
+        ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: hasBody ? JSON.stringify(requestExample) : undefined,
     })
     const timeMs = Math.round(performance.now() - start)
     const text = await res.text()

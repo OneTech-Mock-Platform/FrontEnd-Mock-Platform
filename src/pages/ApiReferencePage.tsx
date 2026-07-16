@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Check, ChevronDown, Copy, FileJson, Search, Send } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
+import RequestPayloadBlock from '../components/RequestPayloadBlock'
 import { getToken } from '../services/api'
 import { NOISY_HEADERS, STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
 
@@ -40,6 +41,7 @@ type Scenario = {
   name?: string
   isDefault: boolean
   mockContent?: string
+  requestExample?: Record<string, unknown> | null
 }
 
 const methodColors: Record<string, { bg: string; text: string; border: string }> = {
@@ -175,6 +177,7 @@ export default function ApiReferencePage() {
       path: selectedEndpoint.path,
       pathParams,
       scenarioId: selectedScenario.id,
+      requestExample: selectedScenario.requestExample,
     })
     setTestResult(result)
     setTesting(false)
@@ -449,29 +452,30 @@ export default function ApiReferencePage() {
 
                           {/* Onglets Stocké / Testé en direct */}
                           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                            <button
+                         {<button
                               type="button"
                               className={activeTab === 'stored' ? 'btn btn-orange' : 'btn btn-outline-secondary'}
                               style={{ fontSize: '0.78rem', padding: '6px 14px' }}
                               onClick={() => setActiveTab('stored')}
                             >
                               📦 Stocké
-                            </button>
+                            </button> }
                             <button
                               type="button"
                               className={activeTab === 'live' ? 'btn btn-orange' : 'btn btn-outline-secondary'}
                               style={{ fontSize: '0.78rem', padding: '6px 14px' }}
                               onClick={() => setActiveTab('live')}
                             >
-                              🌐 Testé en direct
+                              🌐 Testé
                             </button>
                           </div>
 
                           {activeTab === 'stored' ? (
                             <>
-                              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px' }}>
-                                Contenu enregistré en base — aucun appel réseau, c'est ce que le mock server renverra.
-                              </p>
+                              <span className="spec-badge" style={{ display: 'inline-flex', marginBottom: 12 }}>
+                                📦 Aperçu statique — aucun appel réseau
+                              </span>
+                              <RequestPayloadBlock requestExample={selectedScenario?.requestExample} statusCode={selectedScenario?.statusCode} />
                               {selectedScenario?.mockContent ? (
                                 <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1e293b' }}>
                                   <div style={{
@@ -544,6 +548,8 @@ export default function ApiReferencePage() {
                               <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px' }}>
                                 Réponse réellement reçue d'une requête HTTP envoyée au mock server (<code>/mock/...</code>).
                               </p>
+
+                              <RequestPayloadBlock requestExample={selectedScenario?.requestExample} statusCode={selectedScenario?.statusCode} />
 
                               {dynamicParamNames.length > 0 && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
