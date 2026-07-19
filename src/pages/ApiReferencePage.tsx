@@ -69,7 +69,7 @@ export default function ApiReferencePage() {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
-  const [activeTab, setActiveTab] = useState<'stored' | 'live'>('stored')
+  const [activeTab, setActiveTab] = useState<'stored' | 'live'>('live') // 'stored' désactivé temporairement, cf. commentaires plus bas
   const [pathParams, setPathParams] = useState<Record<string, string>>({})
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [testing, setTesting] = useState(false)
@@ -121,7 +121,7 @@ export default function ApiReferencePage() {
   // Charge les scénarios de l'endpoint sélectionné
   useEffect(() => {
     if (!endpointId) return
-    setActiveTab('stored')
+    setActiveTab('live') // 'stored'
     setTestResult(null)
     setPathParams({})
     const load = async () => {
@@ -452,15 +452,17 @@ export default function ApiReferencePage() {
 
                           {/* Onglets Stocké / Testé en direct */}
                           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                         {<button
+                            {/* 
+                            <button
                               type="button"
                               className={activeTab === 'stored' ? 'btn btn-orange' : 'btn btn-outline-secondary'}
                               style={{ fontSize: '0.78rem', padding: '6px 14px' }}
                               onClick={() => setActiveTab('stored')}
                             >
                               📦 Stocké
-                            </button> }
-                            <button
+                            </button>
+                            */}
+                            {/* 
                               type="button"
                               className={activeTab === 'live' ? 'btn btn-orange' : 'btn btn-outline-secondary'}
                               style={{ fontSize: '0.78rem', padding: '6px 14px' }}
@@ -468,9 +470,11 @@ export default function ApiReferencePage() {
                             >
                               🌐 Testé
                             </button>
+                            */}
                           </div>
 
-                          {activeTab === 'stored' ? (
+                          {/* 
+                          {activeTab === 'stored' && (
                             <>
                               <span className="spec-badge" style={{ display: 'inline-flex', marginBottom: 12 }}>
                                 📦 Aperçu statique — aucun appel réseau
@@ -543,11 +547,14 @@ export default function ApiReferencePage() {
                                 <div className="spec-empty">Aucune donnée mock disponible pour ce scénario.</div>
                               )}
                             </>
-                          ) : (
-                            <>
+                          )}
+                          */}
+                          <>
+                              {/* 
                               <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px' }}>
                                 Réponse réellement reçue d'une requête HTTP envoyée au mock server (<code>/mock/...</code>).
                               </p>
+                              */}
 
                               <RequestPayloadBlock requestExample={selectedScenario?.requestExample} statusCode={selectedScenario?.statusCode} />
 
@@ -651,7 +658,6 @@ export default function ApiReferencePage() {
                                 </>
                               )}
                             </>
-                          )}
                         </>
                       )}
                     </div>

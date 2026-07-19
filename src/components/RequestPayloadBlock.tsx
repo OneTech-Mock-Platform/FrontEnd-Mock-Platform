@@ -1,4 +1,4 @@
-import { isCauseDeterminable } from '../lib/mockTest'
+// import { isCauseDeterminable } from '../lib/mockTest' // désactivé temporairement, cf. commentaire plus bas
 
 export default function RequestPayloadBlock({
   requestExample,
@@ -13,11 +13,13 @@ export default function RequestPayloadBlock({
       <p className="section-kicker" style={{ color: '#1d4ed8', marginBottom: 8, fontSize: '0.7rem' }}>
         Corps de la requête
       </p>
+      {/* 
       {typeof statusCode === 'number' && !isCauseDeterminable(statusCode) && (
         <p style={{ fontSize: '0.75rem', color: '#a16207', margin: '0 0 8px' }}>
           ⚠️ Cause non déterminable automatiquement depuis le schéma (auth/droits, ressource ou panne serveur) — exemple générique.
         </p>
       )}
+      */}
       <pre style={{
         background: '#0f172a',
         color: '#e2e8f0',
