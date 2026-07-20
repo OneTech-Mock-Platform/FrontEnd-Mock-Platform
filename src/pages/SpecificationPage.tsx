@@ -85,6 +85,8 @@ export default function SpecificationPage() {
 	const [dragActive, setDragActive] = useState(false)
 	const [currentPage, setCurrentPage] = useState(1)
 	const [deleteTarget, setDeleteTarget] = useState<SpecificationItem | null>(null)
+	const deleteModalRef = useRef<HTMLDivElement | null>(null)
+	const deleteCancelRef = useRef<HTMLButtonElement | null>(null)
 	const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null)
 	const [showImport, setShowImport] = useState(false)
 
@@ -181,11 +183,40 @@ export default function SpecificationPage() {
 
 	useEffect(() => {
 		if (!deleteTarget) return
+
+		const previouslyFocused = document.activeElement as HTMLElement | null
+		const previousOverflow = document.body.style.overflow
+		document.body.style.overflow = 'hidden'
+		deleteCancelRef.current?.focus()
+
 		const onKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') setDeleteTarget(null)
+			if (event.key === 'Escape') {
+				setDeleteTarget(null)
+				return
+			}
+			if (event.key === 'Tab' && deleteModalRef.current) {
+				const focusable = deleteModalRef.current.querySelectorAll<HTMLElement>(
+					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+				)
+				if (focusable.length === 0) return
+				const first = focusable[0]
+				const last = focusable[focusable.length - 1]
+				if (event.shiftKey && document.activeElement === first) {
+					event.preventDefault()
+					last.focus()
+				} else if (!event.shiftKey && document.activeElement === last) {
+					event.preventDefault()
+					first.focus()
+				}
+			}
 		}
 		window.addEventListener('keydown', onKeyDown)
-		return () => window.removeEventListener('keydown', onKeyDown)
+
+		return () => {
+			window.removeEventListener('keydown', onKeyDown)
+			document.body.style.overflow = previousOverflow
+			previouslyFocused?.focus()
+		}
 	}, [deleteTarget])
 
 	const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
@@ -488,33 +519,57 @@ export default function SpecificationPage() {
 						role="dialog"
 						aria-modal="true"
 						aria-labelledby="delete-modal-title"
+						aria-describedby="delete-modal-desc"
+						ref={deleteModalRef}
 						onClick={(e) => e.stopPropagation()}
 					>
+						<button
+							type="button"
+							ref={deleteCancelRef}
+							className="spec-modal__close"
+							onClick={() => setDeleteTarget(null)}
+							aria-label="Fermer la fenêtre de confirmation"
+						>
+							<svg viewBox="0 0 24 24" aria-hidden="true">
+								<path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71l-1.41-1.42L9.17 12 2.89 5.71 4.3 4.3l6.29 6.29 6.29-6.29z"/>
+							</svg>
+						</button>
+
 						<div className="spec-modal__icon spec-modal__icon--danger">
-							<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+							<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
 								<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
 							</svg>
 						</div>
-						<h3 className="spec-modal__title" id="delete-modal-title">Confirmer la suppression</h3>
-						<p className="spec-modal__body">
-							Vous êtes sur le point de supprimer définitivement <strong>{deleteTarget.name}</strong>.<br />
-							Cette action est irréversible.
+
+						<h3 className="spec-modal__title" id="delete-modal-title">Supprimer cette spécification ?</h3>
+						<p className="spec-modal__body" id="delete-modal-desc">
+							Vous êtes sur le point de supprimer définitivement <strong>{deleteTarget.name}</strong>.
 						</p>
+
+						<div className="spec-modal__warning">
+							<svg viewBox="0 0 24 24" aria-hidden="true">
+								<path d="M12 2 1 21h22L12 2Zm0 5.5 6.53 11.5H5.47L12 7.5ZM11 10v4h2v-4h-2Zm0 5v2h2v-2h-2Z" />
+							</svg>
+							Cette action est irréversible.
+						</div>
+
 						<div className="spec-modal__actions">
 							<button
 								type="button"
-								className="btn btn-outline-secondary"
-								onClick={() => setDeleteTarget(null)}
-							>
-								Annuler
-							</button>
-							<button
-								type="button"
-								className="btn btn-danger"
+								className="spec-modal__btn spec-modal__btn--danger"
 								onClick={handleDeleteConfirm}
 								disabled={saving}
 							>
-								{saving ? 'Suppression…' : 'Supprimer'}
+								{saving ? (
+									'Suppression…'
+								) : (
+									<>
+										<svg viewBox="0 0 24 24" aria-hidden="true">
+											<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+										</svg>
+										Supprimer définitivement
+									</>
+								)}
 							</button>
 						</div>
 					</div>

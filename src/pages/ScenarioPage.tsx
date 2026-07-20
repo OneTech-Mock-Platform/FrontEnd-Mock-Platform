@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import RequestPayloadBlock from '../components/RequestPayloadBlock'
+import ResponseViewer from '../components/ResponseViewer'
 import { getToken } from '../services/api'
-import { NOISY_HEADERS, STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
+import { STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
 
 type Scenario = {
   id: string
@@ -259,17 +260,23 @@ export default function ScenarioPage() {
                     </span>
                     <RequestPayloadBlock requestExample={selectedScenario.requestExample} statusCode={selectedScenario.statusCode} />
                     {selectedScenario.mockContent ? (
-                      <pre style={{
-                        background: '#0f172a',
-                        color: '#e2e8f0',
-                        borderRadius: 10,
-                        padding: 16,
-                        fontSize: '0.78rem',
-                        lineHeight: 1.7,
-                        overflow: 'auto',
-                        maxHeight: 450,
-                        fontFamily: "'Fira Code', monospace",
-                      }}>
+                      <pre
+                        tabIndex={0}
+                        role="region"
+                        aria-label="Contenu du mock, zone défilable"
+                        style={{
+                          background: '#0f172a',
+                          color: '#e2e8f0',
+                          borderRadius: 10,
+                          padding: 16,
+                          fontSize: '0.78rem',
+                          lineHeight: 1.7,
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          overflow: 'auto',
+                          maxHeight: 450,
+                          fontFamily: "'Fira Code', monospace",
+                        }}>
                         {selectedScenario.mockContent}
                       </pre>
                     ) : (
@@ -286,7 +293,7 @@ export default function ScenarioPage() {
 
                     <RequestPayloadBlock requestExample={selectedScenario.requestExample} statusCode={selectedScenario.statusCode} />
 
-                    {testResult?.scenarioId !== selectedScenario.id ? (
+                    {testResult?.scenarioId !== selectedScenario.id || !testResult ? (
                       <div className="spec-empty" style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
                         Aucun test lancé pour ce scénario pour l'instant.
                         <button
@@ -299,64 +306,13 @@ export default function ScenarioPage() {
                           {testingScenarioId === selectedScenario.id ? 'Test en cours…' : '🌐 Tester en direct'}
                         </button>
                       </div>
-                    ) : testResult?.error ? (
-                      <div className="alert alert-danger">{testResult.error}</div>
                     ) : (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, flexWrap: 'wrap' }}>
-                          <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: '#1c1c3c' }}>
-                            {endpointMethod} {endpointPath ? resolvePath(endpointPath, pathParams) : ''}
-                          </span>
-                          {typeof testResult?.status === 'number' && (() => {
-                            const meta = STATUS_COLORS[String(testResult.status)[0]] ?? STATUS_COLORS['5']
-                            return (
-                              <span style={{ fontFamily: 'monospace', fontWeight: 700, color: meta.color }}>
-                                {testResult.status}
-                              </span>
-                            )
-                          })()}
-                          {typeof testResult?.timeMs === 'number' && (
-                            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{testResult.timeMs} ms</span>
-                          )}
-                        </div>
-
-                        {(() => {
-                          const relevantHeaders = Object.entries(testResult?.headers ?? {}).filter(
-                            ([key]) => !NOISY_HEADERS.has(key.toLowerCase()),
-                          )
-                          if (relevantHeaders.length === 0) return null
-                          return (
-                            <div style={{ marginBottom: 12, fontSize: '0.78rem', color: '#475569' }}>
-                              {relevantHeaders.map(([key, value]) => (
-                                <div key={key}>
-                                  <strong>{key}</strong>: {value}
-                                </div>
-                              ))}
-                            </div>
-                          )
-                        })()}
-
-                        <pre style={{
-                          background: '#0f172a',
-                          color: '#e2e8f0',
-                          borderRadius: 10,
-                          padding: 16,
-                          fontSize: '0.78rem',
-                          lineHeight: 1.7,
-                          overflow: 'auto',
-                          maxHeight: 450,
-                          fontFamily: "'Fira Code', monospace",
-                        }}>
-                          {(() => {
-                            if (!testResult?.body) return '(pas de contenu)'
-                            try {
-                              return JSON.stringify(JSON.parse(testResult.body), null, 2)
-                            } catch {
-                              return testResult.body
-                            }
-                          })()}
-                        </pre>
-                      </>
+                      <ResponseViewer
+                        requestLabel={`${endpointMethod ?? ''} ${endpointPath ? resolvePath(endpointPath, pathParams) : ''}`}
+                        result={testResult}
+                        onRetry={() => void handleTest(selectedScenario)}
+                        retrying={testingScenarioId === selectedScenario.id}
+                      />
                     )}
                   </>
                 )}

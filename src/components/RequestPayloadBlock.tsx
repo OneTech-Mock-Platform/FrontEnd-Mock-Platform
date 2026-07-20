@@ -20,17 +20,23 @@ export default function RequestPayloadBlock({
         </p>
       )}
       */}
-      <pre style={{
-        background: '#0f172a',
-        color: '#e2e8f0',
-        borderRadius: 10,
-        padding: 16,
-        fontSize: '0.78rem',
-        lineHeight: 1.7,
-        overflow: 'auto',
-        maxHeight: 300,
-        fontFamily: "'Fira Code', monospace",
-      }}>
+      <pre
+        tabIndex={0}
+        role="region"
+        aria-label="Corps de la requête, zone défilable"
+        style={{
+          background: '#0f172a',
+          color: '#e2e8f0',
+          borderRadius: 10,
+          padding: 16,
+          fontSize: '0.78rem',
+          lineHeight: 1.7,
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          overflow: 'auto',
+          maxHeight: 300,
+          fontFamily: "'Fira Code', monospace",
+        }}>
         {JSON.stringify(requestExample, null, 2)}
       </pre>
     </div>

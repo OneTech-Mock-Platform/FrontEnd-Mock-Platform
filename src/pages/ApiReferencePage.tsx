@@ -4,8 +4,9 @@ import { ArrowLeft, Check, ChevronDown, Copy, FileJson, Search, Send } from 'luc
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import RequestPayloadBlock from '../components/RequestPayloadBlock'
+import ResponseViewer from '../components/ResponseViewer'
 import { getToken } from '../services/api'
-import { NOISY_HEADERS, STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
+import { STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
 
 type EndpointParameter = {
   name: string
@@ -413,7 +414,7 @@ export default function ApiReferencePage() {
                             >
                               {selectedScenario ? selectedScenario.statusCode : '—'}
                               <span style={{ fontFamily: 'inherit', fontWeight: 500, fontSize: '0.85rem' }}>
-                                {selectedScenario?.description || selectedScenario?.name || ''}
+                             {/*    {selectedScenario?.description || selectedScenario?.name || ''} */}
                               </span>
                               <ChevronDown size={14} />
                             </button>
@@ -441,7 +442,7 @@ export default function ApiReferencePage() {
                                           {sc.statusCode}
                                         </span>
                                         <span style={{ fontSize: '0.82rem', color: '#475569' }}>
-                                          {sc.description || sc.name || ''}
+                                        {/*   {sc.description || sc.name || ''} */}
                                         </span>
                                       </button>
                                     )
@@ -576,7 +577,7 @@ export default function ApiReferencePage() {
                                 </div>
                               )}
 
-                              {testResult?.scenarioId !== selectedScenario?.id ? (
+                              {testResult?.scenarioId !== selectedScenario?.id || !testResult ? (
                                 <div className="spec-empty" style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
                                   Aucun test lancé pour ce scénario pour l'instant.
                                   <button
@@ -590,72 +591,13 @@ export default function ApiReferencePage() {
                                     {testing ? 'Test en cours…' : 'Tester en direct'}
                                   </button>
                                 </div>
-                              ) : testResult?.error ? (
-                                <div className="alert alert-danger">{testResult.error}</div>
                               ) : (
-                                <>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, flexWrap: 'wrap' }}>
-                                    <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: '#1c1c3c' }}>
-                                      {selectedEndpoint.method} {resolvePath(selectedEndpoint.path, pathParams)}
-                                    </span>
-                                    {typeof testResult?.status === 'number' && (() => {
-                                      const meta = STATUS_COLORS[String(testResult.status)[0]] ?? STATUS_COLORS['5']
-                                      return (
-                                        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: meta.color }}>
-                                          {testResult.status}
-                                        </span>
-                                      )
-                                    })()}
-                                    {typeof testResult?.timeMs === 'number' && (
-                                      <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{testResult.timeMs} ms</span>
-                                    )}
-                                    <button
-                                      type="button"
-                                      className="btn btn-outline-secondary"
-                                      style={{ fontSize: '0.72rem', padding: '3px 10px', marginLeft: 'auto' }}
-                                      onClick={() => void handleTest()}
-                                    >
-                                      Relancer
-                                    </button>
-                                  </div>
-
-                                  {(() => {
-                                    const relevantHeaders = Object.entries(testResult?.headers ?? {}).filter(
-                                      ([key]) => !NOISY_HEADERS.has(key.toLowerCase()),
-                                    )
-                                    if (relevantHeaders.length === 0) return null
-                                    return (
-                                      <div style={{ marginBottom: 12, fontSize: '0.78rem', color: '#475569' }}>
-                                        {relevantHeaders.map(([key, value]) => (
-                                          <div key={key}>
-                                            <strong>{key}</strong>: {value}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )
-                                  })()}
-
-                                  <pre style={{
-                                    background: '#0f172a',
-                                    color: '#e2e8f0',
-                                    borderRadius: 10,
-                                    padding: 16,
-                                    fontSize: '0.78rem',
-                                    lineHeight: 1.7,
-                                    overflow: 'auto',
-                                    maxHeight: 450,
-                                    fontFamily: "'Fira Code', monospace",
-                                  }}>
-                                    {(() => {
-                                      if (!testResult?.body) return '(pas de contenu)'
-                                      try {
-                                        return JSON.stringify(JSON.parse(testResult.body), null, 2)
-                                      } catch {
-                                        return testResult.body
-                                      }
-                                    })()}
-                                  </pre>
-                                </>
+                                <ResponseViewer
+                                  requestLabel={`${selectedEndpoint.method} ${resolvePath(selectedEndpoint.path, pathParams)}`}
+                                  result={testResult}
+                                  onRetry={() => void handleTest()}
+                                  retrying={testing}
+                                />
                               )}
                             </>
                         </>
