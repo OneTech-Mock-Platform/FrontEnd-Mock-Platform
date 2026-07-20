@@ -2938,20 +2938,59 @@ button {
    NAVBAR & SIDEBAR — modern redesign
    ================================================================ */
 
+:root {
+  --sidebar-w: 220px;
+}
+
+body.sidebar-collapsed {
+  --sidebar-w: 76px;
+}
+
 .app-shell {
-  grid-template-columns: 264px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  transition: grid-template-columns 0.22s ease;
 }
 
 .app-sidebar {
   gap: 4px;
-  padding: 22px 14px 20px;
+  padding: 16px 12px 20px;
   background: linear-gradient(180deg, #12132e 0%, #1b1c3f 60%, #1c1c3c 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-x: hidden;
+}
+
+/* ── Sidebar toggle ── */
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+.sidebar-toggle:focus-visible {
+  outline: 2px solid #f7941d;
+  outline-offset: 2px;
+}
+.sidebar-toggle svg {
+  flex-shrink: 0;
 }
 
 /* ── Brand / logo ── */
 .sidebar-brand {
-  padding: 4px 8px 18px;
+  padding: 4px 8px 14px;
   justify-content: flex-start;
 }
 
@@ -2963,8 +3002,45 @@ button {
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
 }
 
+.sidebar-brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f7941d 0%, #e05f00 100%);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 10px rgba(247, 148, 29, 0.3);
+}
+
 .sidebar-divider {
   margin: 0 4px 10px;
+}
+
+/* ── Collapsed state ── */
+.app-sidebar.is-collapsed .sidebar-brand,
+.app-sidebar.is-collapsed .sidebar-toggle,
+.app-sidebar.is-collapsed .sidebar-nav__item,
+.app-sidebar.is-collapsed .sidebar-profile,
+.app-sidebar.is-collapsed .sidebar-logout {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.app-sidebar.is-collapsed .sidebar-nav__label,
+.app-sidebar.is-collapsed .sidebar-toggle span,
+.app-sidebar.is-collapsed .sidebar-profile__info,
+.app-sidebar.is-collapsed .sidebar-logout span {
+  display: none;
+}
+
+.app-sidebar.is-collapsed .sidebar-nav__item.is-active::before {
+  left: -12px;
 }
 
 /* ── Nav items ── */

@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import logo from '../assets/images/logo.png'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const navigationItems = [
@@ -7,9 +9,20 @@ const navigationItems = [
 	{ label: 'Specifications', icon: 'M4 6h7l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z' },
 ]
 
+const COLLAPSE_STORAGE_KEY = 'sidebar-collapsed'
+
 function Sidebar() {
 	const { user, logout } = useAuth()
 	const navigate = useNavigate()
+	const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1')
+
+	useEffect(() => {
+		document.body.classList.toggle('sidebar-collapsed', collapsed)
+		localStorage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? '1' : '0')
+		return () => {
+			document.body.classList.remove('sidebar-collapsed')
+		}
+	}, [collapsed])
 
 	const initials = (user?.name || user?.email || 'U')
 		.split(' ')
@@ -24,10 +37,26 @@ function Sidebar() {
 	}
 
 	return (
-		<aside className="app-sidebar">
+		<aside className={`app-sidebar ${collapsed ? 'is-collapsed' : ''}`}>
 			<div className="sidebar-brand">
-				<img className="sidebar-brand__logo" src={logo} alt="OneTech logo" />
+				{collapsed ? (
+					<span className="sidebar-brand__mark" aria-label="OneTech">OT</span>
+				) : (
+					<img className="sidebar-brand__logo" src={logo} alt="OneTech logo" />
+				)}
 			</div>
+
+			<button
+				type="button"
+				className="sidebar-toggle"
+				onClick={() => setCollapsed((v) => !v)}
+				aria-pressed={collapsed}
+				aria-label={collapsed ? 'Étendre le menu' : 'Réduire le menu'}
+				title={collapsed ? 'Étendre le menu' : 'Réduire le menu'}
+			>
+				{collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+				{!collapsed && <span>Réduire</span>}
+			</button>
 
 			<div className="sidebar-divider" />
 
@@ -39,6 +68,8 @@ function Sidebar() {
 						className={({ isActive }) =>
 							`sidebar-nav__item ${isActive ? 'is-active' : ''}`
 						}
+						title={item.label}
+						aria-label={item.label}
 					>
 						<svg className="sidebar-nav__icon" viewBox="0 0 24 24" aria-hidden="true">
 							<path d={item.icon} />
@@ -55,6 +86,8 @@ function Sidebar() {
 					type="button"
 					className="sidebar-profile"
 					onClick={() => navigate('/profile')}
+					title={`${user?.name || 'Utilisateur'}${user?.email ? ' · ' + user.email : ''}`}
+					aria-label={`Profil de ${user?.name || 'Utilisateur'}`}
 				>
 					<span className="sidebar-profile__avatar">{initials}</span>
 					<span className="sidebar-profile__info">
@@ -63,11 +96,17 @@ function Sidebar() {
 					</span>
 				</button>
 
-				<button type="button" className="sidebar-logout" onClick={handleLogout}>
+				<button
+					type="button"
+					className="sidebar-logout"
+					onClick={handleLogout}
+					title="Déconnexion"
+					aria-label="Déconnexion"
+				>
 					<svg className="sidebar-logout__icon" viewBox="0 0 24 24" aria-hidden="true">
 						<path d="M16 17v-3H9v-4h7V7l5 5-5 5ZM14 2a2 2 0 0 1 2 2v2h-2V4H5v16h9v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
 					</svg>
-					Déconnexion
+					<span>Déconnexion</span>
 				</button>
 			</div>
 		</aside>
