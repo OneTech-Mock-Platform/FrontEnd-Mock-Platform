@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle2, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { loginUser, verifyLoginCode } from '../services/api';
+import logo from '../assets/images/onetech_Logo.png';
 
 export default function SignInPage() {
   const navigate = useNavigate();
@@ -170,236 +171,221 @@ export default function SignInPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 md:p-12 relative overflow-hidden bg-surface" style={{ color: '#ffffff' }}>
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
+    <main
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #0b0c20 0%, #12132e 45%, #1c1c3c 100%)' }}
+    >
+      <div className="absolute -top-24 -left-16 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -right-16 w-96 h-96 bg-[#f7941d]/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 rounded-xl overflow-hidden shadow-2xl glass-panel border border-white/5 z-10">
-        <section
-          className="hidden md:flex flex-col items-center justify-center p-12 bg-surface-container relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #0f1023 0%, #1a1b3a 100%)' }}
-        >
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_2px_2px,rgba(247,148,29,0.08)_1px,transparent_0)] bg-[size:32px_32px]" />
+      <div className="relative w-full max-w-md z-10">
+        <div className="bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+          <div className="flex flex-col items-center gap-3 pb-1">
+            <img src={logo} alt="OneTech" className="h-9 w-auto" />
           </div>
 
-          <div className="relative z-10 flex flex-col items-center gap-6 text-center max-w-xs">
-          {/*   <div className="w-16 h-16 rounded-2xl bg-[#f7941d]/15 border border-[#f7941d]/20 flex items-center justify-center text-[#f7941d]">
-              <ShieldCheck className="h-7 w-7" />
-            </div> */}
-          {/*   <h1 className="font-sans text-3xl font-bold text-white tracking-tight">Connexion sécurisée</h1>
-            <p className="text-gray-400 text-sm leading-relaxed">
-              Après saisie de votre e-mail et de votre mot de passe, un code de vérification est envoyé à votre boîte mail.
-            </p> */}
-          </div>
-        </section>
-
-        <section className="p-8 md:p-12 flex flex-col justify-center bg-[#0f1023]">
-          <div className="w-full max-w-sm mx-auto space-y-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="space-y-2">
-                <h3 className="font-sans text-2xl font-bold text-orange">
-                  {verificationStep ? 'Vérification du compte' : 'Se connecter'}
-                </h3>
-                <p className="text-white-400 text-sm">
-                  {verificationStep
-                    ? 'Saisissez le code reçu par e-mail pour finaliser la connexion.'
-                    : 'Connectez-vous pour accéder à votre espace de travail.'}
-                </p>
-              </div>
-
-              {verificationStep && (
-                <button
-                  type="button"
-                  onClick={goBackToCredentials}
-                  className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-400 hover:text-[#f7941d] transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Retour
-                </button>
-              )}
-            </div>
-
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                <p className="text-red-400 text-sm text-center">{error}</p>
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
-                <p className="text-emerald-300 text-sm text-center">{successMessage}</p>
-              </div>
-            )}
-
-            {!verificationStep ? (
-              <form onSubmit={handleLoginSubmit} className="space-y-5" noValidate>
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="email">
-                    Adresse e-mail
-                  </label>
-                  <div className="relative">
-                    <input
-                      className="w-full bg-[#1a1b3a] border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#f7941d]/50 focus:border-[#f7941d] transition-all outline-none placeholder:text-gray-500"
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="exemple@email.com"
-                      autoComplete="email"
-                    />
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold tracking-wider text-gray-400 uppercase block" htmlFor="password">
-                    Mot de passe
-                  </label>
-                  <div className="relative">
-                    <input
-                      className="w-full bg-[#1a1b3a] border border-gray-700 rounded-lg pl-10 pr-10 py-2.5 text-sm text-white focus:ring-2 focus:ring-[#f7941d]/50 focus:border-[#f7941d] transition-all outline-none placeholder:text-gray-500"
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                    />
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((value) => !value)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-
-                  <div className="flex justify-end pt-1">
-                    <button
-                      type="button"
-                      onClick={() => navigate('/forgot-password')}
-                      className="text-xs text-gray-400 hover:text-[#f7941d] transition-colors"
-                    >
-                      Mot de passe oublié ?
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full font-semibold text-sm tracking-wider uppercase py-3 rounded-lg hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 ${
-                    isLoading
-                      ? 'bg-[#f7941d]/75 text-white cursor-not-allowed'
-                      : 'bg-[#f7941d] text-white hover:shadow-[0_0_20px_rgba(247,148,29,0.35)] cursor-pointer'
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Connexion en cours...
-                    </>
-                  ) : (
-                    'Se connecter'
-                  )}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifySubmit} className="space-y-6" noValidate>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 ml-1">
-                    Code de vérification à 6 chiffres
-                  </label>
-                  <div className="flex justify-center gap-2.5">
-                    {otp.map((digit, index) => (
-                      <input
-                        key={index}
-                        ref={(element) => {
-                          otpRefs.current[index] = element;
-                        }}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(event) => handleOtpChange(index, event.target.value)}
-                        onKeyDown={(event) => handleOtpKeyDown(index, event)}
-                        onPaste={index === 0 ? handleOtpPaste : undefined}
-                        disabled={isSubmitting}
-                        className={`w-12 h-14 text-center text-xl font-bold rounded-xl border bg-slate-50/50 dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#f7941d]/30 focus:border-[#f7941d] transition-all outline-none ${
-                          digit ? 'border-[#f7941d]/40 dark:border-[#f7941d]/40' : 'border-slate-200 dark:border-slate-800'
-                        } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
-                        aria-label={`Chiffre ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting || otp.join('').length < 6}
-                  className={`w-full py-4 rounded-xl font-bold text-white bg-[#f7941d] transition-all shadow-lg shadow-[#f7941d]/20 flex items-center justify-center gap-2 ${
-                    isSubmitting || otp.join('').length < 6
-                      ? 'opacity-70 cursor-not-allowed'
-                      : 'hover:-translate-y-0.5 active:translate-y-0 hover:shadow-[0_0_20px_rgba(247,148,29,0.35)]'
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Vérification...
-                    </>
-                  ) : (
-                    'Valider le code'
-                  )}
-                </button>
-
-                <div className="flex items-center justify-between gap-4">
-                  <button
-                    type="button"
-                    onClick={handleResendCode}
-                    disabled={resendCooldown > 0 || isSubmitting}
-                    className={`text-sm font-bold transition-colors ${
-                      resendCooldown > 0 || isSubmitting
-                        ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed'
-                        : 'text-[#f7941d] hover:underline'
-                    }`}
-                  >
-                    {resendCooldown > 0 ? `Renvoyer dans ${resendCooldown}s` : 'Renvoyer le code'}
-                  </button>
-
-              {/*     <button
-                    type="button"
-                    onClick={goBackToCredentials}
-                    className="font-bold text-[#f7941d] hover:underline text-sm"
-                  >
-                    Modifier l’adresse e-mail
-                  </button> */}
-                </div>
-              </form>
-            )}
-
-            <div className="text-center">
-              <p className="text-sm text-gray-400 font-sans">
-                Pas encore de compte ?{' '}
-                <button
-                  onClick={() => navigate('/signUp')}
-                  className="text-[#f7941d] font-bold hover:underline cursor-pointer"
-                >
-                  S'inscrire
-                </button>
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-[0.7rem] font-bold uppercase tracking-wider text-[#f7941d]">Espace de travail</p>
+              <h3 className="font-sans text-xl font-bold text-[#1c1c3c]">
+                {verificationStep ? 'Vérification du compte' : 'Se connecter'}
+              </h3>
+              <p className="text-slate-500 text-sm">
+                {verificationStep
+                  ? 'Saisissez le code reçu par e-mail pour finaliser la connexion.'
+                  : 'Connectez-vous pour accéder à votre espace de travail.'}
               </p>
             </div>
+
+            {verificationStep && (
+              <button
+                type="button"
+                onClick={goBackToCredentials}
+                className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-[#f7941d] transition-colors flex-shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Retour
+              </button>
+            )}
           </div>
-        </section>
+
+          {error && (
+            <div className="flex items-start gap-2.5 bg-red-50 border border-red-100 rounded-xl px-3.5 py-3">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center mt-0.5">
+                <AlertCircle className="h-3.5 w-3.5" />
+              </span>
+              <p className="text-red-700 text-sm leading-snug">{error}</p>
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="flex items-start gap-2.5 bg-emerald-50 border border-emerald-100 rounded-xl px-3.5 py-3">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mt-0.5">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+              </span>
+              <p className="text-emerald-700 text-sm leading-snug">{successMessage}</p>
+            </div>
+          )}
+
+          {!verificationStep ? (
+            <form onSubmit={handleLoginSubmit} className="space-y-4" noValidate>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase block" htmlFor="email">
+                  Adresse e-mail
+                </label>
+                <div className="relative">
+                  <input
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-[#f7941d]/30 focus:border-[#f7941d] transition-all outline-none placeholder:text-slate-400"
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="exemple@email.com"
+                    autoComplete="email"
+                  />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold tracking-wider text-slate-500 uppercase block" htmlFor="password">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <input
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-10 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-[#f7941d]/30 focus:border-[#f7941d] transition-all outline-none placeholder:text-slate-400"
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                  />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-xs text-slate-500 hover:text-[#f7941d] transition-colors"
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full font-semibold text-sm tracking-wider uppercase py-3 rounded-lg hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 ${
+                  isLoading
+                    ? 'bg-[#f7941d]/75 text-white cursor-not-allowed'
+                    : 'bg-[#f7941d] text-white hover:shadow-[0_0_20px_rgba(247,148,29,0.35)] cursor-pointer'
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Connexion en cours...
+                  </>
+                ) : (
+                  'Se connecter'
+                )}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifySubmit} className="space-y-5" noValidate>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">
+                  Code de vérification à 6 chiffres
+                </label>
+                <div className="flex justify-center gap-2.5">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(element) => {
+                        otpRefs.current[index] = element;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(event) => handleOtpChange(index, event.target.value)}
+                      onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                      onPaste={index === 0 ? handleOtpPaste : undefined}
+                      disabled={isSubmitting}
+                      className={`w-11 h-12 text-center text-xl font-bold rounded-xl border bg-slate-50 text-slate-900 focus:ring-2 focus:ring-[#f7941d]/30 focus:border-[#f7941d] transition-all outline-none ${
+                        digit ? 'border-[#f7941d]/40' : 'border-slate-200'
+                      } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      aria-label={`Chiffre ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting || otp.join('').length < 6}
+                className={`w-full py-3.5 rounded-xl font-bold text-white bg-[#f7941d] transition-all shadow-lg shadow-[#f7941d]/20 flex items-center justify-center gap-2 ${
+                  isSubmitting || otp.join('').length < 6
+                    ? 'opacity-70 cursor-not-allowed'
+                    : 'hover:-translate-y-0.5 active:translate-y-0 hover:shadow-[0_0_20px_rgba(247,148,29,0.35)]'
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Vérification...
+                  </>
+                ) : (
+                  'Valider le code'
+                )}
+              </button>
+
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={resendCooldown > 0 || isSubmitting}
+                  className={`text-sm font-bold transition-colors ${
+                    resendCooldown > 0 || isSubmitting
+                      ? 'text-slate-400 cursor-not-allowed'
+                      : 'text-[#f7941d] hover:underline'
+                  }`}
+                >
+                  {resendCooldown > 0 ? `Renvoyer dans ${resendCooldown}s` : 'Renvoyer le code'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="text-center pt-1 border-t border-slate-100">
+            <p className="text-sm text-slate-500 font-sans pt-4">
+              Pas encore de compte ?{' '}
+              <button
+                onClick={() => navigate('/signUp')}
+                className="text-[#f7941d] font-bold hover:underline cursor-pointer"
+              >
+                S'inscrire
+              </button>
+            </p>
+          </div>
+        </div>
       </div>
     </main>
   );
