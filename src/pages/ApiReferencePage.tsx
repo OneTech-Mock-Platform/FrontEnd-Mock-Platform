@@ -559,7 +559,7 @@ export default function ApiReferencePage() {
 
                               <RequestPayloadBlock requestExample={selectedScenario?.requestExample} statusCode={selectedScenario?.statusCode} />
 
-                              {dynamicParamNames.length > 0 && (
+                           {/*    {dynamicParamNames.length > 0 && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
                                   {dynamicParamNames.map((name) => (
                                     <label key={name} style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '0.82rem' }}>
@@ -575,7 +575,7 @@ export default function ApiReferencePage() {
                                     </label>
                                   ))}
                                 </div>
-                              )}
+                              )} */}
 
                               {testResult?.scenarioId !== selectedScenario?.id || !testResult ? (
                                 <div className="spec-empty" style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
