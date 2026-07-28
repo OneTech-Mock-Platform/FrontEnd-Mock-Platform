@@ -1,4 +1,4 @@
-/* import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Pie, Bar } from 'react-chartjs-2'
 import {
@@ -127,11 +127,11 @@ function LandingPage() {
 										<span className="dashboard-stat-tile__label">Scénarios générés</span>
 										<strong className="dashboard-stat-tile__value">{stats.totals.scenarios}</strong>
 									</div>
-									<div className="dashboard-stat-tile dashboard-stat-tile--highlight">
+									{/* <div className="dashboard-stat-tile dashboard-stat-tile--highlight">
 										<span className="dashboard-stat-tile__label">Endpoints avec &gt; 1 scénario</span>
 										<strong className="dashboard-stat-tile__value">{stats.totals.multiScenarioPercent}%</strong>
 										<span className="dashboard-stat-tile__hint">Au-delà du simple 200 auto-généré</span>
-									</div>
+									</div> */}
 								</div>
 
 								<div className="dashboard-charts-grid">
@@ -189,7 +189,7 @@ function LandingPage() {
 										)}
 									</section>
 
-									{stats.scenariosBySpec.length > 1 ? (
+									{/* {stats.scenariosBySpec.length > 1 ? (
 										<section className="spec-card dashboard-chart-card dashboard-chart-card--wide">
 											<div className="panel-header">
 												<h2 className="panel-title mb-0">Scénarios par spécification</h2>
@@ -216,7 +216,7 @@ function LandingPage() {
 												/>
 											</div>
 										</section>
-									) : null}
+									) : null} */}
 								</div>
 
 								<section className="spec-card">
@@ -258,33 +258,4 @@ function LandingPage() {
 	)
 }
  
-export default LandingPage*/
-
-
-import Navbar from '../components/Navbar'
-import Sidebar from '../components/Sidebar'
-
-function LandingPage() {
-	return (
-		<div className="app-shell">
-			<Sidebar />
-
-			<div className="app-main">
-				<Navbar />
-				{/* <main className="app-stage">
-					<section className="hero-panel">
-						<div>
-							<p className="section-kicker text-orange mb-2">Dashboard</p>
-							<h1 className="page-title mb-2">Welcome to OneTech</h1>
-							<p className="page-subtitle mb-0">
-								Use the sidebar to open Specifications and import files with a modern workflow.
-							</p>
-						</div>
-					</section>
-				</main> */}
-			</div>
-		</div>
-	)
-}
-
 export default LandingPage

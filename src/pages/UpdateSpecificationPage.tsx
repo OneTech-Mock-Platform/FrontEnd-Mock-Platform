@@ -47,6 +47,10 @@ export default function SpecificationEditPage() {
 	const [saving, setSaving] = useState(false)
 	const [error, setError] = useState('')
 	const [saveSuccess, setSaveSuccess] = useState(false)
+	// Erreurs YAML/OpenAPI renvoyées par le backend (parsing.service.ts) sur un PATCH échoué :
+	// line/column quand dispo (erreur de syntaxe YAML), sinon juste un message (erreur de
+	// validation OpenAPI).
+	const [validationErrors, setValidationErrors] = useState<{ line?: number; column?: number; message: string }[]>([])
 
 	useEffect(() => {
 		const load = async () => {
@@ -95,6 +99,7 @@ export default function SpecificationEditPage() {
 		if (!spec) return
 		setSaving(true)
 		setError('')
+		setValidationErrors([])
 		setSaveSuccess(false)
 		try {
 			const token = getToken()
@@ -108,7 +113,17 @@ export default function SpecificationEditPage() {
 				headers,
 				body: JSON.stringify(draft),
 			})
-			/* if (!response.ok) throw new Error('La sauvegarde a échoué.')
+
+			// Avant : cette vérification était commentée, donc un PATCH échoué (ex: YAML/OpenAPI
+			// invalide) affichait quand même "Enregistré" en silence. On lit maintenant le corps
+			// d'erreur structuré renvoyé par parsing.service.ts pour l'afficher au lieu de mentir
+			// sur le succès.
+			if (!response.ok) {
+				const body = await response.json().catch(() => null)
+				setValidationErrors(body?.errors ?? [{ message: body?.message ?? 'La sauvegarde a échoué.' }])
+				return
+			}
+
 			const updated = (await response.json()) as SpecificationItem
 			setSpec(updated)
 			setDraft({
@@ -116,7 +131,7 @@ export default function SpecificationEditPage() {
 				fileName: updated.fileName,
 				format: updated.format,
 				content: updated.content,
-			}) */
+			})
 			setSaveSuccess(true)
 			setTimeout(() => setSaveSuccess(false), 3000)
 		} catch (e) {
@@ -127,6 +142,21 @@ export default function SpecificationEditPage() {
 	}
 
 
+
+	// Saute à la ligne d'une erreur YAML (bouton "Ligne N" dans la liste ci-dessous) : convertit
+	// le numéro de ligne 1-indexé en index de caractère pour sélectionner la ligne dans le
+	// textarea, et défile le textarea (approximation par hauteur de ligne moyenne, pas de vraie
+	// API de "scroll to line" sur un <textarea>) pour la garder visible.
+	function scrollToLine(line: number) {
+		const ta = textareaRef.current
+		if (!ta) return
+		const linesArr = draft.content.split('\n')
+		const charIndex = linesArr.slice(0, line - 1).reduce((sum, l) => sum + l.length + 1, 0)
+		ta.focus()
+		ta.setSelectionRange(charIndex, charIndex + (linesArr[line - 1]?.length ?? 0))
+		const lineHeight = ta.scrollHeight / linesArr.length
+		ta.scrollTop = Math.max(0, (line - 3) * lineHeight)
+	}
 
 	const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === 'Tab') {
@@ -227,6 +257,27 @@ export default function SpecificationEditPage() {
 						</div>
 
 						{error ? <div className="alert alert-danger">{error}</div> : null}
+
+						{/* Liste des erreurs YAML/OpenAPI renvoyées par le PATCH échoué, une par ligne ;
+						    celles qui ont un numéro de ligne (erreurs de syntaxe YAML) offrent un lien
+						    pour sauter directement dessus dans l'éditeur ci-dessous. */}
+						{validationErrors.length > 0 && (
+							<div className="alert alert-danger">
+								<strong>La spécification contient des erreurs :</strong>
+								<ul style={{ marginTop: 8, marginBottom: 0 }}>
+									{validationErrors.map((err, i) => (
+										<li key={i}>
+											{err.line ? (
+												<button type="button" className="spec-error-line-link" onClick={() => scrollToLine(err.line!)}>
+													Ligne {err.line}{err.column ? `, col. ${err.column}` : ''}
+												</button>
+											) : null}
+											{' '}{err.message}
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
 
 						{/* ── Métadonnées ── */}
 						<section className="spec-card">

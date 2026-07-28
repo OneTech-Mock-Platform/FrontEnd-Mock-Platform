@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, ChevronDown, Copy, FileJson, Search, Send } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, Copy, FileJson, Plus, Search, Send } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import RequestPayloadBlock from '../components/RequestPayloadBlock'
 import ResponseViewer from '../components/ResponseViewer'
+import ScenarioFormPanel, { type ScenarioFormSavePayload } from '../components/ScenarioFormPanel'
 import { getToken } from '../services/api'
 import { STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
 
@@ -27,12 +28,15 @@ type EndpointDetails = {
   }[]
 }
 
+type EndpointWarning = { code: string; message: string }
+
 type Endpoint = {
   id: string
   path: string
   method: string
   summary?: string
   responses?: EndpointDetails
+  warnings?: EndpointWarning[]
 }
 
 type Scenario = {
@@ -69,8 +73,9 @@ export default function ApiReferencePage() {
   const [loadingScenarios, setLoadingScenarios] = useState(false)
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [showScenarioPanel, setShowScenarioPanel] = useState(false)
 
-  const [activeTab, setActiveTab] = useState<'stored' | 'live'>('live') // 'stored' désactivé temporairement, cf. commentaires plus bas
+  const [activeTab, setActiveTab] = useState<'stored' | 'live'>('live')
   const [pathParams, setPathParams] = useState<Record<string, string>>({})
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [testing, setTesting] = useState(false)
@@ -119,30 +124,67 @@ export default function ApiReferencePage() {
     [endpoints, endpointId],
   )
 
-  // Charge les scénarios de l'endpoint sélectionné
+  // Charge les scénarios de l'endpoint sélectionné (réutilisable après création manuelle)
+  const loadScenarios = useCallback(async (selectId?: string) => {
+    if (!endpointId) return
+    setLoadingScenarios(true)
+    try {
+      const res = await fetch(`/api/scenarios/endpoint/${endpointId}`, { headers: authHeaders() })
+      if (!res.ok) throw new Error('Impossible de charger les scénarios.')
+      const data = await res.json() as { items: Scenario[] }
+      const items = data.items ?? []
+      setScenarios(items)
+      const fallback = items.find((s) => s.isDefault) ?? items[0] ?? null
+      setSelectedScenarioId(selectId ?? fallback?.id ?? null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur.')
+    } finally {
+      setLoadingScenarios(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endpointId])
+
   useEffect(() => {
     if (!endpointId) return
     setActiveTab('live') // 'stored'
     setTestResult(null)
     setPathParams({})
-    const load = async () => {
-      setLoadingScenarios(true)
-      try {
-        const res = await fetch(`/api/scenarios/endpoint/${endpointId}`, { headers: authHeaders() })
-        if (!res.ok) throw new Error('Impossible de charger les scénarios.')
-        const data = await res.json() as { items: Scenario[] }
-        const items = data.items ?? []
-        setScenarios(items)
-        const defaultScenario = items.find((s) => s.isDefault) ?? items[0] ?? null
-        setSelectedScenarioId(defaultScenario?.id ?? null)
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Erreur.')
-      } finally {
-        setLoadingScenarios(false)
-      }
-    }
-    void load()
+    void loadScenarios()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endpointId])
+
+  async function handleScenarioSaved(payload: ScenarioFormSavePayload) {
+    if (!endpointId) return
+    let requestExampleParsed: Record<string, unknown> | undefined
+    try {
+      const trimmed = payload.requestExample.trim()
+      requestExampleParsed = trimmed ? JSON.parse(trimmed) : undefined
+    } catch {
+      setError('Le corps de requête doit être un JSON valide.')
+      return
+    }
+
+    try {
+      const res = await fetch('/api/scenarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({
+          endpointId,
+          name: payload.name || undefined,
+          description: payload.description || undefined,
+          statusCode: payload.statusCode,
+          requestExample: requestExampleParsed,
+          mockContent: payload.mockContent,
+        }),
+      })
+      if (!res.ok) throw new Error("La création du scénario a échoué.")
+      const created = await res.json() as { id: string }
+      setShowScenarioPanel(false)
+      await loadScenarios(created.id)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur.')
+    }
+  }
 
   const filteredEndpoints = search.trim()
     ? endpoints.filter(
@@ -202,6 +244,7 @@ export default function ApiReferencePage() {
   }
 
   return (
+    <>
     <div className="app-shell">
       <Sidebar />
       <div className="app-main">
@@ -344,6 +387,17 @@ export default function ApiReferencePage() {
                         </p>
                       )}
 
+                      {/* Incohérences détectées dans la spec elle-même (pas des erreurs de test),
+                          calculées à la volée côté backend depuis ce qui est déjà stocké — voir
+                          spec-warnings.util.ts. */}
+                      {selectedEndpoint.warnings && selectedEndpoint.warnings.length > 0 && (
+                        <div className="spec-warning-banner">
+                          {selectedEndpoint.warnings.map((w) => (
+                            <div key={w.code}>⚠️ {w.message}</div>
+                          ))}
+                        </div>
+                      )}
+
                       {selectedEndpoint.responses?.parameters && selectedEndpoint.responses.parameters.length > 0 && (
                         <div style={{ marginTop: 18, paddingTop: 16, borderTop: '1px solid #eef0f6' }}>
                           <p className="section-kicker" style={{ color: '#1d4ed8', marginBottom: 10 }}>
@@ -379,6 +433,14 @@ export default function ApiReferencePage() {
                     <div className="spec-card">
                       <div className="panel-header">
                         <h2 className="panel-title mb-0">Réponses</h2>
+                      {<button
+                          type="button"
+                          className="btn btn-orange"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', padding: '7px 14px' }}
+                          onClick={() => setShowScenarioPanel(true)}
+                        >
+                          <Plus size={15} /> Nouveau scénario
+                        </button>}
                       </div>
 
                       {loadingScenarios ? (
@@ -611,5 +673,15 @@ export default function ApiReferencePage() {
         </main>
       </div>
     </div>
+
+    {showScenarioPanel && selectedEndpoint && (
+      <ScenarioFormPanel
+        endpointId={selectedEndpoint.id}
+        statusCodes={(selectedEndpoint.responses?.responses ?? []).map((r) => r.statusCode)}
+        onClose={() => setShowScenarioPanel(false)}
+        onSaved={handleScenarioSaved}
+      />
+    )}
+    </>
   )
 }
