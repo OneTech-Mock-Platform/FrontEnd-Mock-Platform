@@ -127,11 +127,7 @@ function LandingPage() {
 										<span className="dashboard-stat-tile__label">Scénarios générés</span>
 										<strong className="dashboard-stat-tile__value">{stats.totals.scenarios}</strong>
 									</div>
-									{/* <div className="dashboard-stat-tile dashboard-stat-tile--highlight">
-										<span className="dashboard-stat-tile__label">Endpoints avec &gt; 1 scénario</span>
-										<strong className="dashboard-stat-tile__value">{stats.totals.multiScenarioPercent}%</strong>
-										<span className="dashboard-stat-tile__hint">Au-delà du simple 200 auto-généré</span>
-									</div> */}
+									
 								</div>
 
 								<div className="dashboard-charts-grid">
@@ -189,34 +185,7 @@ function LandingPage() {
 										)}
 									</section>
 
-									{/* {stats.scenariosBySpec.length > 1 ? (
-										<section className="spec-card dashboard-chart-card dashboard-chart-card--wide">
-											<div className="panel-header">
-												<h2 className="panel-title mb-0">Scénarios par spécification</h2>
-											</div>
-											<div className="dashboard-chart-canvas-wrap">
-												<Bar
-													data={{
-														labels: stats.scenariosBySpec.map((s) => s.specName),
-														datasets: [
-															{
-																label: 'Scénarios',
-																data: stats.scenariosBySpec.map((s) => s.count),
-																backgroundColor: '#f7941d',
-																borderRadius: 6,
-															},
-														],
-													}}
-													options={{
-														plugins: { legend: { display: false } },
-														scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
-														maintainAspectRatio: false,
-														responsive: true,
-													}}
-												/>
-											</div>
-										</section>
-									) : null} */}
+									
 								</div>
 
 								<section className="spec-card">

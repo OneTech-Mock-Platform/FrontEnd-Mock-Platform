@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, ChevronDown, Copy, FileJson, Plus, Search, Send } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, Copy, FileJson, Plus, Search, Send, Sparkles } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import RequestPayloadBlock from '../components/RequestPayloadBlock'
@@ -46,6 +46,7 @@ type Scenario = {
   name?: string
   isDefault: boolean
   mockContent?: string
+  mockContentIsAuto?: boolean
   requestExample?: Record<string, unknown> | null
 }
 
@@ -112,7 +113,6 @@ export default function ApiReferencePage() {
     void load()
   }, [specId])
 
-  // Redirige vers le premier endpoint si aucun n'est sélectionné dans l'URL
   useEffect(() => {
     if (!loadingEndpoints && !endpointId && endpoints.length > 0 && specId) {
       navigate(`/specifications/${specId}/reference/${endpoints[0].id}`, { replace: true })
@@ -124,7 +124,7 @@ export default function ApiReferencePage() {
     [endpoints, endpointId],
   )
 
-  // Charge les scénarios de l'endpoint sélectionné (réutilisable après création manuelle)
+  // Charge les scénarios de l'endpoint sélectionné 
   const loadScenarios = useCallback(async (selectId?: string) => {
     if (!endpointId) return
     setLoadingScenarios(true)
@@ -141,7 +141,7 @@ export default function ApiReferencePage() {
     } finally {
       setLoadingScenarios(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [endpointId])
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export default function ApiReferencePage() {
     setTestResult(null)
     setPathParams({})
     void loadScenarios()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [endpointId])
 
   async function handleScenarioSaved(payload: ScenarioFormSavePayload) {
@@ -449,7 +449,7 @@ export default function ApiReferencePage() {
                         <div className="spec-empty">Aucun scénario généré pour cet endpoint.</div>
                       ) : (
                         <>
-                          {/* Dropdown de sélection du code de statut, façon Beeceptor */}
+                         
                           <div style={{ position: 'relative', marginBottom: 18, display: 'inline-block' }}>
                             <button
                               type="button"
@@ -478,6 +478,11 @@ export default function ApiReferencePage() {
                               <span style={{ fontFamily: 'inherit', fontWeight: 500, fontSize: '0.85rem' }}>
                              {/*    {selectedScenario?.description || selectedScenario?.name || ''} */}
                               </span>
+                              {selectedScenario && !selectedScenario.mockContentIsAuto && (
+                                <span title="Scénario personnalisé (créé manuellement ou via l'IA)" style={{ display: 'flex' }}>
+                                  <Sparkles size={14} color="#f7941d" />
+                                </span>
+                              )}
                               <ChevronDown size={14} />
                             </button>
 
@@ -503,9 +508,14 @@ export default function ApiReferencePage() {
                                         <span style={{ fontFamily: 'monospace', fontWeight: 700, color: meta.color, minWidth: 34 }}>
                                           {sc.statusCode}
                                         </span>
-                                        <span style={{ fontSize: '0.82rem', color: '#475569' }}>
+                                        <span style={{ fontSize: '0.82rem', color: '#475569', flex: 1 }}>
                                         {/*   {sc.description || sc.name || ''} */}
                                         </span>
+                                        {!sc.mockContentIsAuto && (
+                                          <span title="Scénario personnalisé (créé manuellement ou via l'IA)" style={{ display: 'flex' }}>
+                                            <Sparkles size={13} color="#f7941d" />
+                                          </span>
+                                        )}
                                       </button>
                                     )
                                   })}
@@ -513,131 +523,10 @@ export default function ApiReferencePage() {
                             )}
                           </div>
 
-                          {/* Onglets Stocké / Testé en direct */}
-                          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                            {/* 
-                            <button
-                              type="button"
-                              className={activeTab === 'stored' ? 'btn btn-orange' : 'btn btn-outline-secondary'}
-                              style={{ fontSize: '0.78rem', padding: '6px 14px' }}
-                              onClick={() => setActiveTab('stored')}
-                            >
-                              📦 Stocké
-                            </button>
-                            */}
-                            {/* 
-                              type="button"
-                              className={activeTab === 'live' ? 'btn btn-orange' : 'btn btn-outline-secondary'}
-                              style={{ fontSize: '0.78rem', padding: '6px 14px' }}
-                              onClick={() => setActiveTab('live')}
-                            >
-                              🌐 Testé
-                            </button>
-                            */}
-                          </div>
-
-                          {/* 
-                          {activeTab === 'stored' && (
-                            <>
-                              <span className="spec-badge" style={{ display: 'inline-flex', marginBottom: 12 }}>
-                                📦 Aperçu statique — aucun appel réseau
-                              </span>
-                              <RequestPayloadBlock requestExample={selectedScenario?.requestExample} statusCode={selectedScenario?.statusCode} />
-                              {selectedScenario?.mockContent ? (
-                                <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1e293b' }}>
-                                  <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 10,
-                                    padding: '8px 14px',
-                                    background: '#1e293b',
-                                  }}>
-                                    <span style={{ display: 'flex', gap: 5 }}>
-                                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#475569' }} />
-                                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#475569' }} />
-                                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#475569' }} />
-                                    </span>
-                                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontFamily: 'monospace' }}>
-                                      response-{selectedScenario.statusCode}.json
-                                    </span>
-                                    {(() => {
-                                      const meta = STATUS_COLORS[String(selectedScenario.statusCode)[0]] ?? STATUS_COLORS['5']
-                                      return (
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.72rem', color: meta.color }}>
-                                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: meta.color }} />
-                                          {selectedScenario.statusCode}
-                                        </span>
-                                      )
-                                    })()}
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        void navigator.clipboard.writeText(selectedScenario.mockContent ?? '')
-                                        setCopied(true)
-                                        setTimeout(() => setCopied(false), 1500)
-                                      }}
-                                      style={{
-                                        marginLeft: 'auto',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 5,
-                                        background: 'transparent',
-                                        border: 'none',
-                                        color: copied ? '#4ade80' : '#94a3b8',
-                                        fontSize: '0.72rem',
-                                        cursor: 'pointer',
-                                      }}
-                                    >
-                                      {copied ? <Check size={13} /> : <Copy size={13} />}
-                                      {copied ? 'Copié' : 'Copier'}
-                                    </button>
-                                  </div>
-                                  <pre style={{
-                                    background: '#0f172a',
-                                    color: '#e2e8f0',
-                                    margin: 0,
-                                    padding: 16,
-                                    fontSize: '0.78rem',
-                                    lineHeight: 1.7,
-                                    overflow: 'auto',
-                                    maxHeight: 450,
-                                    fontFamily: "'Fira Code', monospace",
-                                  }}>
-                                    {selectedScenario.mockContent}
-                                  </pre>
-                                </div>
-                              ) : (
-                                <div className="spec-empty">Aucune donnée mock disponible pour ce scénario.</div>
-                              )}
-                            </>
-                          )}
-                          */}
+                    
                           <>
-                              {/* 
-                              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px' }}>
-                                Réponse réellement reçue d'une requête HTTP envoyée au mock server (<code>/mock/...</code>).
-                              </p>
-                              */}
-
+                            
                               <RequestPayloadBlock requestExample={selectedScenario?.requestExample} statusCode={selectedScenario?.statusCode} />
-
-                           {/*    {dynamicParamNames.length > 0 && (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
-                                  {dynamicParamNames.map((name) => (
-                                    <label key={name} style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '0.82rem' }}>
-                                      {name}
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="test-id"
-                                        value={pathParams[name] ?? ''}
-                                        onChange={(e) => setPathParams((prev) => ({ ...prev, [name]: e.target.value }))}
-                                        style={{ minWidth: 160 }}
-                                      />
-                                    </label>
-                                  ))}
-                                </div>
-                              )} */}
 
                               {testResult?.scenarioId !== selectedScenario?.id || !testResult ? (
                                 <div className="spec-empty" style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AlertCircle, CheckCircle2, KeyRound, Lock, Mail, Save, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../services/api';
 import Sidebar from '../components/Sidebar';
@@ -26,6 +27,13 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const initials = (user?.name || user?.email || 'U')
+    .split(' ')
+    .map((part) => part.charAt(0))
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -85,170 +93,132 @@ export default function ProfilPage() {
         <div className="app-stage">
           <div className="spec-page">
             <div className="spec-page__header">
-              <h1 className="spec-page__title">Mon Profil</h1>
+              <div className="spec-page__header-text">
+                <h1 className="spec-page__title">Mon profil</h1>
+                <p className="spec-page__subtitle">Gérez vos informations personnelles et votre sécurité.</p>
+              </div>
             </div>
 
-            <div className="spec-card">
-              {error && (
-                <div style={{
-                  padding: '12px 16px',
-                  marginBottom: '16px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '8px',
-                  color: '#ef4444',
-                  fontSize: '0.9rem',
-                }}>
-                  {error}
-                </div>
-              )}
+            <div className="profile-hero">
+              <span className="profile-hero__avatar">{initials}</span>
+              <div className="profile-hero__info">
+                <strong className="profile-hero__name">{user?.name || 'Utilisateur'}</strong>
+                <span className="profile-hero__email">
+                  <Mail size={14} />
+                  {user?.email || ''}
+                </span>
+              </div>
+            </div>
 
-              {success && (
-                <div style={{
-                  padding: '12px 16px',
-                  marginBottom: '16px',
-                  backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                  border: '1px solid rgba(34, 197, 94, 0.3)',
-                  borderRadius: '8px',
-                  color: '#15803d',
-                  fontSize: '0.9rem',
-                }}>
-                  {success}
-                </div>
-              )}
+            {error && (
+              <div className="profile-alert profile-alert--error">
+                <AlertCircle size={18} />
+                {error}
+              </div>
+            )}
 
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {success && (
+              <div className="profile-alert profile-alert--success">
+                <CheckCircle2 size={18} />
+                {success}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="spec-card profile-section">
+                <div className="profile-section__header">
+                  <span className="profile-section__icon">
+                    <UserIcon size={18} />
+                  </span>
+                  <div>
+                    <h3 className="profile-section__title">Informations personnelles</h3>
+                    <p className="profile-section__desc">Le nom affiché dans l'application</p>
+                  </div>
+                </div>
+
                 <div className="form-group">
                   <span>Nom</span>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      border: '1px solid #e6e8f0',
-                      fontSize: '0.95rem',
-                      backgroundColor: '#ffffff',
-                      color: '#1c1c3c',
-                    }}
-                    placeholder="Votre nom"
-                  />
+                  <div className="profile-field">
+                    <UserIcon size={16} className="profile-field__icon" />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="profile-input"
+                      placeholder="Votre nom"
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">
                   <span>Email</span>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      border: '1px solid #e6e8f0',
-                      fontSize: '0.95rem',
-                      backgroundColor: '#f1f3f8',
-                      color: '#6b7280',
-                      cursor: 'not-allowed',
-                    }}
-                  />
+                  <div className="profile-field">
+                    <Mail size={16} className="profile-field__icon" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      disabled
+                      className="profile-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="spec-card profile-section">
+                <div className="profile-section__header">
+                  <span className="profile-section__icon profile-section__icon--danger">
+                    <Lock size={18} />
+                  </span>
+                  <div>
+                    <h3 className="profile-section__title">Sécurité</h3>
+                    <p className="profile-section__desc">Laissez vide si vous ne souhaitez pas changer de mot de passe</p>
+                  </div>
                 </div>
 
-                <div style={{ borderTop: '1px solid #e6e8f0', paddingTop: '20px' }}>
-                  <h3 style={{
-                    color: '#f7941d',
-                    fontSize: '1.1rem',
-                    fontWeight: '700',
-                    marginBottom: '16px',
-                  }}>
-                    Changer le mot de passe
-                  </h3>
-
-                  <div className="form-group">
-                    {/* <span>Mot de passe actuel</span>
-                    <input
-                      type="password"
-                      name="currentPassword"
-                      value={formData.currentPassword}
-                      onChange={handleChange}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        border: '1px solid #e6e8f0',
-                        fontSize: '0.95rem',
-                        backgroundColor: '#ffffff',
-                        color: '#1c1c3c',
-                      }}
-                      placeholder="Votre mot de passe actuel"
-                    /> */}
-                  </div>
-
-                  <div className="form-group" style={{ marginTop: '16px' }}>
-                    <span>Nouveau mot de passe</span>
+                <div className="form-group">
+                  <span>Nouveau mot de passe</span>
+                  <div className="profile-field">
+                    <KeyRound size={16} className="profile-field__icon" />
                     <input
                       type="password"
                       name="newPassword"
                       value={formData.newPassword}
                       onChange={handleChange}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        border: '1px solid #e6e8f0',
-                        fontSize: '0.95rem',
-                        backgroundColor: '#ffffff',
-                        color: '#1c1c3c',
-                      }}
+                      className="profile-input"
                       placeholder="Nouveau mot de passe (min. 6 caractères)"
                     />
                   </div>
+                </div>
 
-                  <div className="form-group" style={{ marginTop: '16px' }}>
-                    <span>Confirmer le nouveau mot de passe</span>
+                <div className="form-group" style={{ marginTop: '16px' }}>
+                  <span>Confirmer le nouveau mot de passe</span>
+                  <div className="profile-field">
+                    <KeyRound size={16} className="profile-field__icon" />
                     <input
                       type="password"
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        border: '1px solid #e6e8f0',
-                        fontSize: '0.95rem',
-                        backgroundColor: '#ffffff',
-                        color: '#1c1c3c',
-                      }}
+                      className="profile-input"
                       placeholder="Confirmer le nouveau mot de passe"
                     />
                   </div>
                 </div>
+              </div>
 
-                <div className="spec-actions">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-orange"
-                    style={{
-                      padding: '14px 28px',
-                      borderRadius: '12px',
-                      fontSize: '1rem',
-                      fontWeight: '700',
-                      border: 'none',
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                      opacity: loading ? 0.6 : 1,
-                    }}
-                  >
-                    {loading ? 'Enregistrement...' : 'Enregistrer les modifications'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              <div className="spec-actions">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="spec-save-btn"
+                >
+                  <Save size={18} />
+                  {loading ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

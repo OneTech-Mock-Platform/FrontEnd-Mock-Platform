@@ -33,6 +33,44 @@ function countLines(text: string) {
 	return text.split('\n').length
 }
 
+function ErrorCard({ index, line, column, path, message, badge, onJumpToLine }: {
+	index: number; line?: number; column?: number; path?: string; message: string; badge?: string
+	onJumpToLine?: (line: number) => void
+}) {
+	return (
+		<div style={{ background: 'white', border: '1px solid #fecaca', borderRadius: 10, padding: 14, marginBottom: 10 }}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+				<span style={{ width: 20, height: 20, borderRadius: '50%', background: '#fee2e2', color: '#b91c1c', fontSize: '0.7rem', fontWeight: 700, display: 'grid', placeItems: 'center' }}>
+					{index}
+				</span>
+				{line ? (
+					onJumpToLine ? (
+						<button
+							type="button"
+							className="spec-error-line-link"
+							onClick={() => onJumpToLine(line)}
+							style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: 600 }}
+						>
+							Ligne {line}{column ? `, col. ${column}` : ''}
+						</button>
+					) : (
+						<span style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: 600 }}>
+							Ligne {line}{column ? `, col. ${column}` : ''}
+						</span>
+					)
+				) : null}
+				{badge && (
+					<span style={{ marginLeft: 'auto', fontSize: '0.68rem', background: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: 6 }}>
+						{badge}
+					</span>
+				)}
+			</div>
+			<p style={{ margin: 0, fontSize: '0.85rem' }}>{message}</p>
+			{path && <p style={{ margin: '4px 0 0', fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace' }}>{path}</p>}
+		</div>
+	)
+}
+
 export default function SpecificationEditPage() {
 	const { id } = useParams<{ id: string }>()
 	const navigate = useNavigate()
@@ -51,6 +89,9 @@ export default function SpecificationEditPage() {
 	// line/column quand dispo (erreur de syntaxe YAML), sinon juste un message (erreur de
 	// validation OpenAPI).
 	const [validationErrors, setValidationErrors] = useState<{ line?: number; column?: number; message: string }[]>([])
+	// Écarts non-bloquants renvoyés par SwaggerParser.validate() (norme stricte OpenAPI) — la
+	// spec est déjà enregistrée à ce stade, purement indicatif, jamais un échec de sauvegarde.
+	const [strictWarnings, setStrictWarnings] = useState<{ line?: number; column?: number; message: string }[]>([])
 
 	useEffect(() => {
 		const load = async () => {
@@ -100,6 +141,7 @@ export default function SpecificationEditPage() {
 		setSaving(true)
 		setError('')
 		setValidationErrors([])
+		setStrictWarnings([])
 		setSaveSuccess(false)
 		try {
 			const token = getToken()
@@ -124,7 +166,7 @@ export default function SpecificationEditPage() {
 				return
 			}
 
-			const updated = (await response.json()) as SpecificationItem
+			const updated = (await response.json()) as SpecificationItem & { warnings?: { line?: number; column?: number; message: string }[] }
 			setSpec(updated)
 			setDraft({
 				name: updated.name,
@@ -132,6 +174,7 @@ export default function SpecificationEditPage() {
 				format: updated.format,
 				content: updated.content,
 			})
+			setStrictWarnings(updated.warnings ?? [])
 			setSaveSuccess(true)
 			setTimeout(() => setSaveSuccess(false), 3000)
 		} catch (e) {
@@ -262,20 +305,38 @@ export default function SpecificationEditPage() {
 						    celles qui ont un numéro de ligne (erreurs de syntaxe YAML) offrent un lien
 						    pour sauter directement dessus dans l'éditeur ci-dessous. */}
 						{validationErrors.length > 0 && (
-							<div className="alert alert-danger">
-								<strong>La spécification contient des erreurs :</strong>
-								<ul style={{ marginTop: 8, marginBottom: 0 }}>
+							<div className="alert alert-danger" style={{ background: '#fef2f2' }}>
+								<strong>🔴 {validationErrors.length} erreur(s) trouvée(s)</strong>
+								<div style={{ marginTop: 12 }}>
 									{validationErrors.map((err, i) => (
-										<li key={i}>
-											{err.line ? (
-												<button type="button" className="spec-error-line-link" onClick={() => scrollToLine(err.line!)}>
-													Ligne {err.line}{err.column ? `, col. ${err.column}` : ''}
-												</button>
-											) : null}
-											{' '}{err.message}
-										</li>
+										<ErrorCard
+											key={i}
+											index={i + 1}
+											line={err.line}
+											column={err.column}
+											message={err.message}
+											onJumpToLine={err.line ? scrollToLine : undefined}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+
+						{/* Écarts non-bloquants par rapport à la norme stricte OpenAPI (SwaggerParser.validate()) :
+						    la spec est déjà enregistrée et fonctionne (dereference() a réussi juste au-dessus),
+						    ceci est un rapport de qualité indicatif, jamais un blocage. */}
+						{strictWarnings.length > 0 && (
+							<div className="alert alert-warning">
+								<strong>⚠️ {strictWarnings.length} écart(s) par rapport à la norme stricte OpenAPI</strong>
+								<ul style={{ marginTop: 8, marginBottom: 4 }}>
+									{strictWarnings.map((w, i) => (
+										<li key={i}>{w.line ? `Ligne ${w.line} — ` : ''}{w.message}</li>
 									))}
 								</ul>
+								<p className="hint" style={{ margin: 0 }}>
+									La spécification a été enregistrée et fonctionne normalement — ces écarts sont
+									purement informatifs, ils n'empêchent ni la sauvegarde ni la génération de scénarios.
+								</p>
 							</div>
 						)}
 

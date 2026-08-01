@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 function Navbar() {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 	const { user, logout } = useAuth()
-	const navigate = useNavigate()                                   
+	const navigate = useNavigate()
 
 	const toggleDropdown = () => {
 		setIsDropdownOpen(!isDropdownOpen)

@@ -5,8 +5,9 @@ import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const navigationItems = [
-    { label:'Dashboard', icon: 'M3 4h18v2H3zm0 4h18v2H3zm0 4h12v2H3zm0 4h16v2H3z' },
-	{ label: 'Specifications', icon: 'M4 6h7l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z' },
+	{ label: 'Dashboard', to: '/', icon: 'M3 4h18v2H3zm0 4h18v2H3zm0 4h12v2H3zm0 4h16v2H3z' },
+	{ label: 'Specifications', to: '/specifications', icon: 'M4 6h7l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z' },
+	{ label: 'Profil', to: '/profile', icon: 'M12 12a4.5 4.5 0 1 0-4.5-4.5A4.51 4.51 0 0 0 12 12Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z' },
 ]
 
 const COLLAPSE_STORAGE_KEY = 'sidebar-collapsed'
@@ -61,10 +62,11 @@ function Sidebar() {
 			<div className="sidebar-divider" />
 
 			<nav className="sidebar-nav" aria-label="Main navigation">
-				{navigationItems.map((item, index) => (
+				{navigationItems.map((item) => (
 					<NavLink
 						key={item.label}
-						to={index === 1 ? '/specifications' : '/'}
+						to={item.to}
+						end={item.to === '/'}
 						className={({ isActive }) =>
 							`sidebar-nav__item ${isActive ? 'is-active' : ''}`
 						}

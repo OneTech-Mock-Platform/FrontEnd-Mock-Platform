@@ -10,6 +10,7 @@ import ForgetPasswordPage from './pages/ForgetPasswordPage.tsx'
 import ProfilPage from './pages/ProfilPage.tsx'
 import ScenariosPage from './pages/ScenarioPage.tsx'
 import ApiReferencePage from './pages/ApiReferencePage.tsx'
+import PublicMockPage from './pages/PublicMockPage.tsx'
 import './App.css'
 
 function App() {
@@ -28,6 +29,8 @@ function App() {
         <Route path="/profile" element={<ProfilPage />} />
         <Route path="/endpoints/:endpointId/scenarios" element={<ScenariosPage />} />
         <Route path="/specifications/:specId/reference/:endpointId?" element={<ApiReferencePage />} />
+        {/* Route publique, sans authentification — lien partageable (voir PublicMockController côté backend) */}
+        <Route path="/public/:specId" element={<PublicMockPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

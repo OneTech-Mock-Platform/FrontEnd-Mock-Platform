@@ -89,6 +89,7 @@ export default function SpecificationPage() {
 	const deleteCancelRef = useRef<HTMLButtonElement | null>(null)
 	const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null)
 	const [showImport, setShowImport] = useState(false)
+	const [copiedSpecId, setCopiedSpecId] = useState<string | null>(null)
 
 	const totalPages = Math.ceil(specs.length / PAGE_SIZE)
 	const paginated = specs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -218,6 +219,12 @@ export default function SpecificationPage() {
 			previouslyFocused?.focus()
 		}
 	}, [deleteTarget])
+
+	const handleCopyPublicLink = (spec: SpecificationItem) => {
+		void navigator.clipboard.writeText(`${window.location.origin}/public/${spec.id}`)
+		setCopiedSpecId(spec.id)
+		setTimeout(() => setCopiedSpecId((current) => (current === spec.id ? null : current)), 1500)
+	}
 
 	const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
 		event.preventDefault()
@@ -371,7 +378,7 @@ export default function SpecificationPage() {
 										Toutes les spécifications
 									</h2>
 									<p className="spec-table-count-label">
-								{/* 		{specs.length} spécification{specs.length > 1 ? 's' : ''} au total */}
+							
 									</p>
 								</div>
 							</div>
@@ -425,6 +432,25 @@ export default function SpecificationPage() {
 														
 														<td>
 															<div className="spec-table__action-btns" role="group" aria-label={`Actions pour ${spec.name}`}>
+															{/*     Action buttons: Copy link, View, Edit, Delete */} 
+															    <button
+																	type="button"
+																	className="spec-icon-btn spec-icon-btn--link"
+																	title="Copier le lien public"
+																	aria-label={`Copier le lien public de ${spec.name}`}
+																	onClick={() => handleCopyPublicLink(spec)}
+																>
+																	{copiedSpecId === spec.id ? (
+																		<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+																			<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+																		</svg>
+																	) : (
+																		<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+																			<path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+																		</svg>
+																	)}
+																</button> 
+
 																<button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--view"
