@@ -1,3 +1,5 @@
+import keycloak from '../keycloak';
+
 const API_BASE = '/api';
 
 function extractErrorMessage(data: any): string {
@@ -62,8 +64,18 @@ export function logoutUser() {
   localStorage.removeItem('access_token');
 }
 
-export function getToken(): string | null {
-  return localStorage.getItem('access_token');
+
+export function getToken(): string | undefined {
+  return keycloak.token;
+}
+
+export async function ensureFreshToken(): Promise<string | undefined> {
+  try {
+    await keycloak.updateToken(30);
+    return keycloak.token;
+  } catch {
+    keycloak.login();
+  }
 }
 
 export async function updateProfile(data: { name?: string, currentPassword?: string, newPassword?: string }) {

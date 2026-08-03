@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { logoutUser } from '../services/api';
+import keycloak from '../keycloak';
 
 interface User {
   id: number;
@@ -16,11 +16,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+
+function userFromKeycloakToken(): User | null {
+  const claims = keycloak.tokenParsed as { email?: string; preferred_username?: string } | undefined;
+  if (!claims?.email) return null;
+  return { id: 0, name: claims.preferred_username ?? claims.email, email: claims.email };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState<User | null>(() => userFromKeycloakToken());
 
   const login = useCallback((userData: User) => {
     setUser(userData);
@@ -30,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('user');
-    logoutUser();
+    keycloak.logout({ redirectUri: window.location.origin });
   }, []);
 
   return (
