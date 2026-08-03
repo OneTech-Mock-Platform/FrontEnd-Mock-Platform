@@ -9,12 +9,38 @@ import {
 	LinearScale,
 	Tooltip,
 	Legend,
+	type Plugin,
 } from 'chart.js'
+import { FileText, Link2, FlaskConical, Layers, ListChecks, ShieldCheck } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { getToken } from '../services/api'
 
-ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend)
+// Petit plugin Chart.js : affiche un total au centre d'un doughnut (valeur + libellé),
+// lu depuis `options.plugins.centerText` — jamais recalculé depuis les datasets, pour
+// rester correct même si un dataset ne couvre pas 100% du total affiché.
+const centerTextPlugin: Plugin<'pie'> = {
+	id: 'centerText',
+	afterDraw(chart) {
+		const opts = (chart.config.options?.plugins as any)?.centerText
+		if (!opts) return
+		const { ctx, chartArea } = chart
+		const cx = (chartArea.left + chartArea.right) / 2
+		const cy = (chartArea.top + chartArea.bottom) / 2
+		ctx.save()
+		ctx.textAlign = 'center'
+		ctx.textBaseline = 'middle'
+		ctx.font = "700 24px system-ui, -apple-system, 'Segoe UI', sans-serif"
+		ctx.fillStyle = '#1c1c3c'
+		ctx.fillText(String(opts.value), cx, cy - 9)
+		ctx.font = "600 11px system-ui, -apple-system, 'Segoe UI', sans-serif"
+		ctx.fillStyle = '#8a90a2'
+		ctx.fillText(opts.label, cx, cy + 13)
+		ctx.restore()
+	},
+}
+
+ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend, centerTextPlugin)
 
 type DashboardStats = {
 	totals: {
@@ -22,6 +48,8 @@ type DashboardStats = {
 		endpoints: number
 		scenarios: number
 		multiScenarioPercent: number
+		errorCoveragePercent: number
+		avgScenariosPerEndpoint: number
 	}
 	scenariosByFamily: { family: string; count: number }[]
 	endpointsByMethod: { method: string; count: number }[]
@@ -35,20 +63,26 @@ type DashboardStats = {
 	}[]
 }
 
+// Palette de statut (2xx=succès, 4xx=avertissement, 5xx=critique) — sémantique, jamais
+// réutilisée pour une série catégorielle. 3xx n'a pas d'équivalent "statut" : on lui
+// donne le bleu catégoriel (identité neutre "info/redirection").
 const FAMILY_COLORS: Record<string, string> = {
-	'2xx': '#22c55e',
-	'3xx': '#3b82f6',
-	'4xx': '#eab308',
-	'5xx': '#ef4444',
+	'2xx': '#0ca30c',
+	'3xx': '#2a78d6',
+	'4xx': '#fab219',
+	'5xx': '#d03b3b',
 }
 
+// Palette catégorielle, ordre fixe (jamais recyclé par rang) : bleu, orange, aqua, jaune, rouge.
 const METHOD_COLORS: Record<string, string> = {
-	GET: '#3b82f6',
-	POST: '#f7941d',
-	PUT: '#8b5cf6',
-	PATCH: '#14b8a6',
-	DELETE: '#ef4444',
+	GET: '#2a78d6',
+	POST: '#eb6834',
+	PUT: '#1baf7a',
+	PATCH: '#eda100',
+	DELETE: '#e34948',
 }
+
+const SERIES_BLUE = '#2a78d6'
 
 function formatDate(value: string) {
 	return new Intl.DateTimeFormat('fr-FR', {
@@ -63,6 +97,36 @@ function authHeaders(): Record<string, string> {
 	const token = getToken()
 	if (token) headers['Authorization'] = `Bearer ${token}`
 	return headers
+}
+
+function KpiTile({
+	icon,
+	label,
+	value,
+	hint,
+	meterPercent,
+}: {
+	icon: React.ReactNode
+	label: string
+	value: string | number
+	hint?: string
+	meterPercent?: number
+}) {
+	return (
+		<div className="kpi-tile">
+			<span className="kpi-tile__icon">{icon}</span>
+			<div className="kpi-tile__body">
+				<span className="kpi-tile__label">{label}</span>
+				<strong className="kpi-tile__value">{value}</strong>
+				{hint && <span className="kpi-tile__hint">{hint}</span>}
+				{meterPercent !== undefined && (
+					<div className="kpi-tile__meter">
+						<div className="kpi-tile__meter-fill" style={{ width: `${Math.min(100, meterPercent)}%` }} />
+					</div>
+				)}
+			</div>
+		</div>
+	)
 }
 
 function LandingPage() {
@@ -115,19 +179,40 @@ function LandingPage() {
 						) : stats ? (
 							<>
 								<div className="dashboard-stats-grid">
-									<div className="dashboard-stat-tile">
-										<span className="dashboard-stat-tile__label">Spécifications importées</span>
-										<strong className="dashboard-stat-tile__value">{stats.totals.specs}</strong>
-									</div>
-									<div className="dashboard-stat-tile">
-										<span className="dashboard-stat-tile__label">Endpoints</span>
-										<strong className="dashboard-stat-tile__value">{stats.totals.endpoints}</strong>
-									</div>
-									<div className="dashboard-stat-tile">
-										<span className="dashboard-stat-tile__label">Scénarios générés</span>
-										<strong className="dashboard-stat-tile__value">{stats.totals.scenarios}</strong>
-									</div>
-									
+									<KpiTile
+										icon={<FileText size={18} />}
+										label="Spécifications importées"
+										value={stats.totals.specs}
+									/>
+									<KpiTile
+										icon={<Link2 size={18} />}
+										label="Endpoints"
+										value={stats.totals.endpoints}
+									/>
+									<KpiTile
+										icon={<FlaskConical size={18} />}
+										label="Scénarios générés"
+										value={stats.totals.scenarios}
+									/>
+									{/* <KpiTile
+										icon={<Layers size={18} />}
+										label="Scénarios / endpoint"
+										value={stats.totals.avgScenariosPerEndpoint}
+										hint="en moyenne"
+									/> */}
+									{/* <KpiTile
+										icon={<ListChecks size={18} />}
+										label="Endpoints multi-scénarios"
+										value={`${stats.totals.multiScenarioPercent}%`}
+										meterPercent={stats.totals.multiScenarioPercent}
+									/> */}
+									<KpiTile
+										icon={<ShieldCheck size={18} />}
+										label="Couverture des cas d'erreur"
+										value={`${stats.totals.errorCoveragePercent}%`}
+										hint="endpoints avec un scénario 4xx/5xx"
+										meterPercent={stats.totals.errorCoveragePercent}
+									/>
 								</div>
 
 								<div className="dashboard-charts-grid">
@@ -146,11 +231,21 @@ function LandingPage() {
 																backgroundColor: stats.scenariosByFamily.map(
 																	(f) => FAMILY_COLORS[f.family] ?? '#94a3b8',
 																),
-																borderWidth: 0,
+																borderWidth: 2,
+																borderColor: '#ffffff',
+																hoverOffset: 6,
 															},
 														],
 													}}
-													options={{ plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false, responsive: true }}
+													options={{
+														cutout: '68%',
+														plugins: {
+															legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16, font: { size: 12 } } },
+															centerText: { value: stats.totals.scenarios, label: 'scénarios' },
+														},
+														maintainAspectRatio: false,
+														responsive: true,
+													}}
 												/>
 											</div>
 										) : (
@@ -173,11 +268,21 @@ function LandingPage() {
 																backgroundColor: stats.endpointsByMethod.map(
 																	(m) => METHOD_COLORS[m.method] ?? '#94a3b8',
 																),
-																borderWidth: 0,
+																borderWidth: 2,
+																borderColor: '#ffffff',
+																hoverOffset: 6,
 															},
 														],
 													}}
-													options={{ plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false, responsive: true }}
+													options={{
+														cutout: '68%',
+														plugins: {
+															legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16, font: { size: 12 } } },
+															centerText: { value: stats.totals.endpoints, label: 'endpoints' },
+														},
+														maintainAspectRatio: false,
+														responsive: true,
+													}}
 												/>
 											</div>
 										) : (
@@ -185,7 +290,40 @@ function LandingPage() {
 										)}
 									</section>
 
-									
+									<section className="spec-card dashboard-chart-card dashboard-chart-card--wide">
+										<div className="panel-header">
+											<h2 className="panel-title mb-0">Scénarios par spécification</h2>
+										</div>
+										{stats.scenariosBySpec.length > 0 ? (
+											<div className="dashboard-chart-canvas-wrap">
+												<Bar
+													data={{
+														labels: stats.scenariosBySpec.map((s) => s.specName),
+														datasets: [
+															{
+																data: stats.scenariosBySpec.map((s) => s.count),
+																backgroundColor: SERIES_BLUE,
+																borderRadius: 4,
+																barThickness: 20,
+															},
+														],
+													}}
+													options={{
+														indexAxis: 'y',
+														plugins: { legend: { display: false } },
+														scales: {
+															x: { grid: { color: '#e1e0d9' }, ticks: { precision: 0 } },
+															y: { grid: { display: false } },
+														},
+														maintainAspectRatio: false,
+														responsive: true,
+													}}
+												/>
+											</div>
+										) : (
+											<div className="spec-empty">Aucune spécification pour l'instant.</div>
+										)}
+									</section>
 								</div>
 
 								<section className="spec-card">
@@ -226,5 +364,5 @@ function LandingPage() {
 		</div>
 	)
 }
- 
+
 export default LandingPage

@@ -3533,42 +3533,80 @@ body.sidebar-collapsed {
 
 .dashboard-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.dashboard-stat-tile {
+.kpi-tile {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 14px;
   padding: 20px 22px;
   border-radius: 20px;
   border: 1px solid #e6e8f0;
   background: #ffffff;
   box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.dashboard-stat-tile--highlight {
-  border-color: rgba(247, 148, 29, 0.35);
-  background: rgba(247, 148, 29, 0.06);
+.kpi-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.08);
+  border-color: rgba(247, 148, 29, 0.3);
 }
 
-.dashboard-stat-tile__label {
-  font-size: 0.82rem;
+.kpi-tile__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(247, 148, 29, 0.1);
+  color: #f7941d;
+}
+
+.kpi-tile__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kpi-tile__label {
+  font-size: 0.8rem;
   font-weight: 600;
   color: #5e6475;
 }
 
-.dashboard-stat-tile__value {
-  font-size: 1.9rem;
+.kpi-tile__value {
+  font-size: 1.7rem;
   font-weight: 800;
   color: #1c1c3c;
+  line-height: 1.1;
 }
 
-.dashboard-stat-tile__hint {
-  font-size: 0.74rem;
+.kpi-tile__hint {
+  font-size: 0.72rem;
   color: #8a90a2;
+}
+
+.kpi-tile__meter {
+  margin-top: 4px;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #cde2fb;
+  overflow: hidden;
+}
+
+.kpi-tile__meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #2a78d6;
+  transition: width 0.3s ease;
 }
 
 .dashboard-charts-grid {
@@ -3582,6 +3620,11 @@ body.sidebar-collapsed {
   display: flex;
   flex-direction: column;
   min-height: 320px;
+  transition: box-shadow 0.15s ease;
+}
+
+.dashboard-chart-card:hover {
+  box-shadow: 0 10px 26px rgba(17, 24, 39, 0.08);
 }
 
 .dashboard-chart-card--wide {
