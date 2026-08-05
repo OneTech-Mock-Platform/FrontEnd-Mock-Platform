@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (user: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,8 +38,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     keycloak.logout({ redirectUri: window.location.origin });
   }, []);
 
+  // Relit le token Keycloak déjà en mémoire (keycloak.tokenParsed) pour
+  // repeupler `user` — utile juste après un keycloak.updateToken(-1) forcé
+  // (ex: après une modification de profil), pour que la Sidebar/Navbar/
+  // page Profil affichent tout de suite le nouveau username/nom, sans que
+  // l'utilisateur ait besoin de se déconnecter/reconnecter manuellement.
+  const refreshUser = useCallback(() => {
+    setUser(userFromKeycloakToken());
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

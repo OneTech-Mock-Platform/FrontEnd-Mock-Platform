@@ -75,14 +75,14 @@ export async function ensureFreshToken(): Promise<string | undefined> {
   }
 }
 
-export async function updateProfile(data: { name?: string, currentPassword?: string, newPassword?: string }) {
-  const token = getToken();
+export async function updateProfile(data: { firstName?: string; lastName?: string; username?: string; password?: string }) {
+  const token = await ensureFreshToken();
   if (!token) {
     throw new Error('Token non trouvé');
   }
 
-  const res = await fetch(`${API_BASE}/auth/profile`, {
-    method: 'PUT',
+  const res = await fetch(`${API_BASE}/profile`, {
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,

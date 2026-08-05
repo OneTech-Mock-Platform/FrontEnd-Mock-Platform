@@ -1,15 +1,38 @@
-import { ExternalLink, Mail, User as UserIcon } from 'lucide-react';
+import { useState } from 'react';
+import { AlertCircle, CheckCircle2, KeyRound, Lock, Mail, Save, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { updateProfile } from '../services/api';
 import keycloak from '../keycloak';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 
-const KEYCLOAK_ACCOUNT_URL = 'http://localhost:9099/realms/mock-platform/account/';
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  newPassword: string;
+  confirmPassword: string;
+}
 
 export default function ProfilPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
-  const claims = keycloak.tokenParsed as { email?: string; preferred_username?: string } | undefined;
+  const claims = keycloak.tokenParsed as
+    | { email?: string; preferred_username?: string; given_name?: string; family_name?: string }
+    | undefined;
+
+  const [formData, setFormData] = useState<FormData>({
+    firstName: claims?.given_name || '',
+    lastName: claims?.family_name || '',
+    email: claims?.email || '',
+    username: claims?.preferred_username || '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const initials = (user?.name || user?.email || 'U')
     .split(' ')
@@ -18,8 +41,79 @@ export default function ProfilPage() {
     .join('')
     .toUpperCase();
 
-  const handleEditProfile = () => {
-    window.open(KEYCLOAK_ACCOUNT_URL, '_blank');
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setError('');
+    setSuccess('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (formData.newPassword && formData.newPassword.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas');
+      setLoading(false);
+      return;
+    }
+
+    const data: { firstName?: string; lastName?: string; username?: string; password?: string } = {};
+    if (formData.firstName !== (claims?.given_name || '')) data.firstName = formData.firstName;
+    if (formData.lastName !== (claims?.family_name || '')) data.lastName = formData.lastName;
+    if (formData.username !== (claims?.preferred_username || '')) data.username = formData.username;
+    if (formData.newPassword) data.password = formData.newPassword;
+
+    if (Object.keys(data).length === 0) {
+      setError('Aucune modification à enregistrer');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await updateProfile(data);
+
+      // Le token d'accès en cours contient encore les anciennes claims —
+      // un JWT est immuable une fois émis. On force Keycloak à en émettre
+      // un nouveau tout de suite (via le refresh token, sans reconnexion
+      // manuelle) pour récupérer le username/prénom/nom à jour, puis on
+      // repeuple le contexte (Sidebar/Navbar) et le formulaire avec.
+      try {
+        await keycloak.updateToken(-1);
+      } catch {
+        // Rafraîchissement impossible (session Keycloak expirée) — la
+        // sauvegarde côté Keycloak a quand même réussi, seul l'affichage
+        // restera en retard jusqu'à la prochaine reconnexion.
+      }
+      refreshUser();
+      const refreshedClaims = keycloak.tokenParsed as
+        | { email?: string; preferred_username?: string; given_name?: string; family_name?: string }
+        | undefined;
+      setFormData({
+        firstName: refreshedClaims?.given_name || '',
+        lastName: refreshedClaims?.family_name || '',
+        email: refreshedClaims?.email || '',
+        username: refreshedClaims?.preferred_username || '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+
+      setSuccess('Profil mis à jour avec succès !');
+    } catch (err: any) {
+      setError(err.message || 'Erreur lors de la mise à jour du profil');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,9 +126,7 @@ export default function ProfilPage() {
             <div className="spec-page__header">
               <div className="spec-page__header-text">
                 <h1 className="spec-page__title">Mon profil</h1>
-                <p className="spec-page__subtitle">
-  Consultez et modifiez vos informations personnelles.
-</p>
+                <p className="spec-page__subtitle">Gérez vos informations personnelles et votre sécurité.</p>
               </div>
             </div>
 
@@ -49,42 +141,135 @@ export default function ProfilPage() {
               </div>
             </div>
 
-            <div className="spec-card profile-section">
-              <div className="profile-section__header">
-                <span className="profile-section__icon">
-                  <UserIcon size={18} />
-                </span>
-                <div>
-                  <h3 className="profile-section__title">Informations personnelles</h3>
-                 <p className="profile-section__desc">
-  Ces informations sont associées à votre compte. Pour les modifier, utilisez le bouton ci-dessous.
-</p>
+            {error && (
+              <div className="profile-alert profile-alert--error">
+                <AlertCircle size={18} />
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="profile-alert profile-alert--success">
+                <CheckCircle2 size={18} />
+                {success}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="spec-card profile-section">
+                <div className="profile-section__header">
+                  <span className="profile-section__icon">
+                    <UserIcon size={18} />
+                  </span>
+                  <div>
+                    <h3 className="profile-section__title">Informations personnelles</h3>
+                    <p className="profile-section__desc">Ces informations sont gérées via votre compte Keycloak</p>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <span>Nom d'utilisateur</span>
+                  <div className="profile-field">
+                    <UserIcon size={16} className="profile-field__icon" />
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      className="profile-input"
+                      placeholder="Votre nom d'utilisateur"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '16px' }}>
+                  <span>Prénom</span>
+                  <div className="profile-field">
+                    <UserIcon size={16} className="profile-field__icon" />
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="profile-input"
+                      placeholder="Votre prénom"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '16px' }}>
+                  <span>Nom</span>
+                  <div className="profile-field">
+                    <UserIcon size={16} className="profile-field__icon" />
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="profile-input"
+                      placeholder="Votre nom"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '16px' }}>
+                  <span>Email</span>
+                  <div className="profile-field">
+                    <Mail size={16} className="profile-field__icon" />
+                    <input value={formData.email} disabled className="profile-input" />
+                  </div>
                 </div>
               </div>
 
-              <div className="form-group">
-                <span>Nom d'utilisateur</span>
-                <div className="profile-field">
-                  <UserIcon size={16} className="profile-field__icon" />
-                  <input value={claims?.preferred_username ?? ''} disabled className="profile-input" />
+              <div className="spec-card profile-section">
+                <div className="profile-section__header">
+                  <span className="profile-section__icon profile-section__icon--danger">
+                    <Lock size={18} />
+                  </span>
+                  <div>
+                    <h3 className="profile-section__title">Sécurité</h3>
+                    <p className="profile-section__desc">Laissez vide si vous ne souhaitez pas changer de mot de passe</p>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <span>Nouveau mot de passe</span>
+                  <div className="profile-field">
+                    <KeyRound size={16} className="profile-field__icon" />
+                    <input
+                      type="password"
+                      name="newPassword"
+                      value={formData.newPassword}
+                      onChange={handleChange}
+                      className="profile-input"
+                      placeholder="Nouveau mot de passe (min. 6 caractères)"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '16px' }}>
+                  <span>Confirmer le nouveau mot de passe</span>
+                  <div className="profile-field">
+                    <KeyRound size={16} className="profile-field__icon" />
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="profile-input"
+                      placeholder="Confirmer le nouveau mot de passe"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginTop: '16px' }}>
-                <span>Email</span>
-                <div className="profile-field">
-                  <Mail size={16} className="profile-field__icon" />
-                  <input value={claims?.email ?? ''} disabled className="profile-input" />
-                </div>
+              <div className="spec-actions">
+                <button type="submit" disabled={loading} className="spec-save-btn">
+                  <Save size={18} />
+                  {loading ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                </button>
               </div>
-            </div>
-
-            <div className="spec-actions">
-              <button type="button" className="spec-save-btn" onClick={handleEditProfile}>
-                <ExternalLink size={18} />
-                Modifier mon profil
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
