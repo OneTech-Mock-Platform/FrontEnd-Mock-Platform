@@ -33,8 +33,8 @@ export default function ProfilPage() {
               <div className="spec-page__header-text">
                 <h1 className="spec-page__title">Mon profil</h1>
                 <p className="spec-page__subtitle">
-                  Géré par votre compte Keycloak — modifiez vos informations depuis la console de compte.
-                </p>
+  Consultez et modifiez vos informations personnelles.
+</p>
               </div>
             </div>
 
@@ -56,9 +56,9 @@ export default function ProfilPage() {
                 </span>
                 <div>
                   <h3 className="profile-section__title">Informations personnelles</h3>
-                  <p className="profile-section__desc">
-                    Ces informations viennent de votre session Keycloak et ne sont pas modifiables ici.
-                  </p>
+                 <p className="profile-section__desc">
+  Ces informations sont associées à votre compte. Pour les modifier, utilisez le bouton ci-dessous.
+</p>
                 </div>
               </div>
 

@@ -19,16 +19,6 @@ type SpecificationItem = {
 		operationCount: number
 	}
 }
-/* 
-type Endpoint = {
-	id: string
-	path: string
-	method: string
-	summary?: string
-	responses?: Record<string, string>
-}
- */
-
 
 type EndpointDetails = {
   description?: string
@@ -198,7 +188,6 @@ export default function SpecificationViewPage() {
 				const p = parseOpenApiContent(data.content, data.format)
 				setParsed(p)
 
-				// Load endpoints from API
 				const endpointsResponse = await fetch(`${apiBaseUrl}/${id}/endpoints`, { headers })
 				if (endpointsResponse.ok) {
 					const endpointsData = await endpointsResponse.json()
@@ -270,11 +259,8 @@ export default function SpecificationViewPage() {
 							Retour aux spécifications
 						</button>
 
-						{/* ── Main Grid ── */}
 						<div className="spec-details-grid">
-							{/* Left Column - Details */}
 							<div className="spec-details-left">
-								{/* Metadata Card */}
 								<section className="spec-card">
 									<div className="panel-header">
 										<div>

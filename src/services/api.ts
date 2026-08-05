@@ -3,11 +3,9 @@ import keycloak from '../keycloak';
 const API_BASE = '/api';
 
 function extractErrorMessage(data: any): string {
-  // Validation errors from class-validator come as an array
   if (data.message && Array.isArray(data.message)) {
     return data.message.join(', ');
   }
-  // Simple error message
   if (data.message) {
     return data.message;
   }
@@ -27,7 +25,6 @@ export async function registerUser(
   });
   const data = await res.json();
   if (!res.ok) throw new Error(extractErrorMessage(data));
-  // Store token
   localStorage.setItem('access_token', data.access_token);
   return data;
 }

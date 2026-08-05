@@ -85,12 +85,9 @@ export default function SpecificationEditPage() {
 	const [saving, setSaving] = useState(false)
 	const [error, setError] = useState('')
 	const [saveSuccess, setSaveSuccess] = useState(false)
-	// Erreurs YAML/OpenAPI renvoyées par le backend (parsing.service.ts) sur un PATCH échoué :
-	// line/column quand dispo (erreur de syntaxe YAML), sinon juste un message (erreur de
-	// validation OpenAPI).
+	
 	const [validationErrors, setValidationErrors] = useState<{ line?: number; column?: number; message: string }[]>([])
-	// Écarts non-bloquants renvoyés par SwaggerParser.validate() (norme stricte OpenAPI) — la
-	// spec est déjà enregistrée à ce stade, purement indicatif, jamais un échec de sauvegarde.
+	
 	const [strictWarnings, setStrictWarnings] = useState<{ line?: number; column?: number; message: string }[]>([])
 
 	useEffect(() => {
@@ -156,10 +153,7 @@ export default function SpecificationEditPage() {
 				body: JSON.stringify(draft),
 			})
 
-			// Avant : cette vérification était commentée, donc un PATCH échoué (ex: YAML/OpenAPI
-			// invalide) affichait quand même "Enregistré" en silence. On lit maintenant le corps
-			// d'erreur structuré renvoyé par parsing.service.ts pour l'afficher au lieu de mentir
-			// sur le succès.
+			
 			if (!response.ok) {
 				const body = await response.json().catch(() => null)
 				setValidationErrors(body?.errors ?? [{ message: body?.message ?? 'La sauvegarde a échoué.' }])
@@ -185,11 +179,6 @@ export default function SpecificationEditPage() {
 	}
 
 
-
-	// Saute à la ligne d'une erreur YAML (bouton "Ligne N" dans la liste ci-dessous) : convertit
-	// le numéro de ligne 1-indexé en index de caractère pour sélectionner la ligne dans le
-	// textarea, et défile le textarea (approximation par hauteur de ligne moyenne, pas de vraie
-	// API de "scroll to line" sur un <textarea>) pour la garder visible.
 	function scrollToLine(line: number) {
 		const ta = textareaRef.current
 		if (!ta) return
@@ -301,9 +290,6 @@ export default function SpecificationEditPage() {
 
 						{error ? <div className="alert alert-danger">{error}</div> : null}
 
-						{/* Liste des erreurs YAML/OpenAPI renvoyées par le PATCH échoué, une par ligne ;
-						    celles qui ont un numéro de ligne (erreurs de syntaxe YAML) offrent un lien
-						    pour sauter directement dessus dans l'éditeur ci-dessous. */}
 						{validationErrors.length > 0 && (
 							<div className="alert alert-danger" style={{ background: '#fef2f2' }}>
 								<strong>🔴 {validationErrors.length} erreur(s) trouvée(s)</strong>
@@ -322,9 +308,7 @@ export default function SpecificationEditPage() {
 							</div>
 						)}
 
-						{/* Écarts non-bloquants par rapport à la norme stricte OpenAPI (SwaggerParser.validate()) :
-						    la spec est déjà enregistrée et fonctionne (dereference() a réussi juste au-dessus),
-						    ceci est un rapport de qualité indicatif, jamais un blocage. */}
+					
 						{strictWarnings.length > 0 && (
 							<div className="alert alert-warning">
 								<strong>⚠️ {strictWarnings.length} écart(s) par rapport à la norme stricte OpenAPI</strong>

@@ -195,7 +195,6 @@ export default function ScenarioPage() {
                        
 
       
-                        {/* Bouton Voir mock : affiche la donnée stockée en base, sans appel réseau */}
                         <button
                           type="button"
                           className="btn btn-orange"
@@ -209,7 +208,6 @@ export default function ScenarioPage() {
                           📦 Voir le mock stocké
                         </button>
 
-                        {/* Bouton Tester : envoie une vraie requête HTTP au mock server */}
                         <button
                           type="button"
                           className="btn btn-outline-secondary"
@@ -227,7 +225,6 @@ export default function ScenarioPage() {
               )}
             </section>
 
-            {/* Panneau unique : détails du scénario sélectionné, avec onglets Stocké / Testé en direct */}
             {selectedScenario && (
               <section className="spec-card" style={{ marginTop: 20 }}>
                 <div className="panel-header">

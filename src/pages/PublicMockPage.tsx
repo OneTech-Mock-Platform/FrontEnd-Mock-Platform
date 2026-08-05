@@ -85,7 +85,6 @@ export default function PublicMockPage() {
       const def = selected.scenarios.find((s) => s.isDefault) ?? selected.scenarios[0]
       setSelectedScenarioId(def?.id ?? null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId])
 
   const selectedScenario = selected?.scenarios.find((s) => s.id === selectedScenarioId)
@@ -115,7 +114,7 @@ export default function PublicMockPage() {
         <span style={{ color: '#64748b', marginLeft: 8 }}>/ {specName}</span>
       </header>
 
-      {/* Bandeau URL de base, pleine largeur, compact */}
+   
       <div style={{ background: 'white', borderBottom: '1px solid #e2e8f0', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap' }}>URL de base :</span>
         <code style={{ flex: 1, fontSize: '0.8rem', background: '#0f172a', color: '#e2e8f0', borderRadius: 6, padding: '6px 12px', maxWidth: 600, overflow: 'auto', whiteSpace: 'nowrap' }}>
@@ -129,10 +128,10 @@ export default function PublicMockPage() {
         </button>
       </div>
 
-      {/* ── Layout 2 colonnes, plein écran ── */}
+      
       <div style={{ display: 'flex', height: 'calc(100vh - 108px)' }}>
 
-        {/* Colonne gauche — liste */}
+      
         <aside style={{ width: 320, borderRight: '1px solid #e2e8f0', background: 'white', overflowY: 'auto', padding: 16, flexShrink: 0 }}>
           <input
             placeholder="Rechercher un endpoint…"
@@ -169,7 +168,7 @@ export default function PublicMockPage() {
           ))}
         </aside>
 
-        {/* Colonne droite — détail + test */}
+     
         <main style={{ flex: 1, overflowY: 'auto', padding: 28 }}>
           {selected && (
             <>

@@ -134,10 +134,10 @@ export default function EndpointsPage() {
 							</div>
 						</div>
 
-						{/* Body: filters + list */}
+					
 						<div className="ep-layout">
 
-							{/* Filter sidebar */}
+						
 							<div className="ep-filters spec-card">
 								<p className="ep-filters__title">Méthodes</p>
 
@@ -194,7 +194,6 @@ export default function EndpointsPage() {
 									/>
 								</div>
 
-								{/* Result count */}
 								<p className="ep-result-count">
 									{filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
 									{activeMethod && <> · <strong>{activeMethod}</strong></>}

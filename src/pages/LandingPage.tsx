@@ -16,9 +16,6 @@ import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { getToken } from '../services/api'
 
-// Petit plugin Chart.js : affiche un total au centre d'un doughnut (valeur + libellé),
-// lu depuis `options.plugins.centerText` — jamais recalculé depuis les datasets, pour
-// rester correct même si un dataset ne couvre pas 100% du total affiché.
 const centerTextPlugin: Plugin<'pie'> = {
 	id: 'centerText',
 	afterDraw(chart) {
@@ -63,9 +60,6 @@ type DashboardStats = {
 	}[]
 }
 
-// Palette de statut (2xx=succès, 4xx=avertissement, 5xx=critique) — sémantique, jamais
-// réutilisée pour une série catégorielle. 3xx n'a pas d'équivalent "statut" : on lui
-// donne le bleu catégoriel (identité neutre "info/redirection").
 const FAMILY_COLORS: Record<string, string> = {
 	'2xx': '#0ca30c',
 	'3xx': '#2a78d6',
@@ -73,7 +67,6 @@ const FAMILY_COLORS: Record<string, string> = {
 	'5xx': '#d03b3b',
 }
 
-// Palette catégorielle, ordre fixe (jamais recyclé par rang) : bleu, orange, aqua, jaune, rouge.
 const METHOD_COLORS: Record<string, string> = {
 	GET: '#2a78d6',
 	POST: '#eb6834',

@@ -146,7 +146,7 @@ export default function ApiReferencePage() {
 
   useEffect(() => {
     if (!endpointId) return
-    setActiveTab('live') // 'stored'
+    setActiveTab('live') 
     setTestResult(null)
     setPathParams({})
     void loadScenarios()
@@ -292,7 +292,7 @@ export default function ApiReferencePage() {
             {error && <div className="alert alert-danger">{error}</div>}
 
             <div className="api-ref-grid">
-              {/* Sidebar gauche : liste des endpoints, fixée et scrollable indépendamment de la page */}
+            
               <div className="spec-endpoints-panel">
                 <aside className="spec-card spec-endpoints-card">
                   <div className="panel-header" style={{ display: 'block' }}>
@@ -387,9 +387,7 @@ export default function ApiReferencePage() {
                         </p>
                       )}
 
-                      {/* Incohérences détectées dans la spec elle-même (pas des erreurs de test),
-                          calculées à la volée côté backend depuis ce qui est déjà stocké — voir
-                          spec-warnings.util.ts. */}
+                     
                       {selectedEndpoint.warnings && selectedEndpoint.warnings.length > 0 && (
                         <div className="spec-warning-banner">
                           {selectedEndpoint.warnings.map((w) => (
