@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { AlertTriangle, XCircle } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { getToken } from '../services/api'
@@ -33,40 +34,31 @@ function countLines(text: string) {
 	return text.split('\n').length
 }
 
-function ErrorCard({ index, line, column, path, message, badge, onJumpToLine }: {
+function IssueCard({ index, line, column, path, message, badge, onJumpToLine }: {
 	index: number; line?: number; column?: number; path?: string; message: string; badge?: string
 	onJumpToLine?: (line: number) => void
 }) {
 	return (
-		<div style={{ background: 'white', border: '1px solid #fecaca', borderRadius: 10, padding: 14, marginBottom: 10 }}>
-			<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-				<span style={{ width: 20, height: 20, borderRadius: '50%', background: '#fee2e2', color: '#b91c1c', fontSize: '0.7rem', fontWeight: 700, display: 'grid', placeItems: 'center' }}>
-					{index}
-				</span>
-				{line ? (
-					onJumpToLine ? (
-						<button
-							type="button"
-							className="spec-error-line-link"
-							onClick={() => onJumpToLine(line)}
-							style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: 600 }}
-						>
-							Ligne {line}{column ? `, col. ${column}` : ''}
-						</button>
-					) : (
-						<span style={{ fontSize: '0.75rem', color: '#b91c1c', fontWeight: 600 }}>
-							Ligne {line}{column ? `, col. ${column}` : ''}
-						</span>
-					)
-				) : null}
-				{badge && (
-					<span style={{ marginLeft: 'auto', fontSize: '0.68rem', background: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: 6 }}>
-						{badge}
-					</span>
-				)}
+		<div className="spec-issue-card">
+			<span className="spec-issue-card__index">{index}</span>
+			<div className="spec-issue-card__body">
+				<div className="spec-issue-card__meta">
+					{line ? (
+						onJumpToLine ? (
+							<button type="button" className="spec-issue-card__line" onClick={() => onJumpToLine(line)}>
+								Ligne {line}{column ? `, col. ${column}` : ''}
+							</button>
+						) : (
+							<span className="spec-issue-card__line">
+								Ligne {line}{column ? `, col. ${column}` : ''}
+							</span>
+						)
+					) : null}
+					{badge && <span className="spec-badge spec-badge--sm">{badge}</span>}
+				</div>
+				<p className="spec-issue-card__message">{message}</p>
+				{path && <p className="spec-issue-card__path">{path}</p>}
 			</div>
-			<p style={{ margin: 0, fontSize: '0.85rem' }}>{message}</p>
-			{path && <p style={{ margin: '4px 0 0', fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace' }}>{path}</p>}
 		</div>
 	)
 }
@@ -291,11 +283,21 @@ export default function SpecificationEditPage() {
 						{error ? <div className="alert alert-danger">{error}</div> : null}
 
 						{validationErrors.length > 0 && (
-							<div className="alert alert-danger" style={{ background: '#fef2f2' }}>
-								<strong>🔴 {validationErrors.length} erreur(s) trouvée(s)</strong>
-								<div style={{ marginTop: 12 }}>
+							<div className="spec-issues-banner spec-issues-banner--error">
+								<div className="spec-issues-banner__header">
+									<span className="spec-issues-banner__icon">
+										<XCircle size={20} />
+									</span>
+									<div>
+										<p className="spec-issues-banner__title">
+											{validationErrors.length} erreur{validationErrors.length > 1 ? 's' : ''} trouvée{validationErrors.length > 1 ? 's' : ''}
+										</p>
+										<p className="spec-issues-banner__subtitle">Corrigez ces problèmes avant de pouvoir enregistrer.</p>
+									</div>
+								</div>
+								<div className="spec-issues-banner__list">
 									{validationErrors.map((err, i) => (
-										<ErrorCard
+										<IssueCard
 											key={i}
 											index={i + 1}
 											line={err.line}
@@ -308,18 +310,26 @@ export default function SpecificationEditPage() {
 							</div>
 						)}
 
-					
 						{strictWarnings.length > 0 && (
-							<div className="alert alert-warning">
-								<strong>⚠️ {strictWarnings.length} écart(s) par rapport à la norme stricte OpenAPI</strong>
-								<ul style={{ marginTop: 8, marginBottom: 4 }}>
+							<div className="spec-issues-banner spec-issues-banner--warning">
+								<div className="spec-issues-banner__header">
+									<span className="spec-issues-banner__icon">
+										<AlertTriangle size={20} />
+									</span>
+									<div>
+										<p className="spec-issues-banner__title">
+											{strictWarnings.length} écart{strictWarnings.length > 1 ? 's' : ''} par rapport à la norme stricte OpenAPI
+										</p>
+										<p className="spec-issues-banner__subtitle">Purement informatif — la spécification a bien été enregistrée.</p>
+									</div>
+								</div>
+								<div className="spec-issues-banner__list">
 									{strictWarnings.map((w, i) => (
-										<li key={i}>{w.line ? `Ligne ${w.line} — ` : ''}{w.message}</li>
+										<IssueCard key={i} index={i + 1} line={w.line} message={w.message} />
 									))}
-								</ul>
-								<p className="hint" style={{ margin: 0 }}>
-									La spécification a été enregistrée et fonctionne normalement — ces écarts sont
-									purement informatifs, ils n'empêchent ni la sauvegarde ni la génération de scénarios.
+								</div>
+								<p className="spec-issues-banner__footnote">
+									Ces écarts n'empêchent ni la sauvegarde ni la génération de scénarios.
 								</p>
 							</div>
 						)}

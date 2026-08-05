@@ -83,17 +83,10 @@ export default function ProfilPage() {
     try {
       await updateProfile(data);
 
-      // Le token d'accès en cours contient encore les anciennes claims —
-      // un JWT est immuable une fois émis. On force Keycloak à en émettre
-      // un nouveau tout de suite (via le refresh token, sans reconnexion
-      // manuelle) pour récupérer le username/prénom/nom à jour, puis on
-      // repeuple le contexte (Sidebar/Navbar) et le formulaire avec.
       try {
         await keycloak.updateToken(-1);
       } catch {
-        // Rafraîchissement impossible (session Keycloak expirée) — la
-        // sauvegarde côté Keycloak a quand même réussi, seul l'affichage
-        // restera en retard jusqu'à la prochaine reconnexion.
+       
       }
       refreshUser();
       const refreshedClaims = keycloak.tokenParsed as
@@ -163,7 +156,7 @@ export default function ProfilPage() {
                   </span>
                   <div>
                     <h3 className="profile-section__title">Informations personnelles</h3>
-                    <p className="profile-section__desc">Ces informations sont gérées via votre compte Keycloak</p>
+                    <p className="profile-section__desc"> Consultez et modifiez vos informations personnelles.</p>
                   </div>
                 </div>
 
