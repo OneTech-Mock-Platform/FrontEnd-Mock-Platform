@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import RequestPayloadBlock from '../components/RequestPayloadBlock'
 import ResponseViewer from '../components/ResponseViewer'
-import { getToken } from '../services/api'
+import { ensureFreshToken } from '../services/api'
 import { STATUS_COLORS, resolvePath, runMockTest, type TestResult } from '../lib/mockTest'
 
 type Scenario = {
@@ -63,7 +63,7 @@ export default function ScenarioPage() {
     const load = async () => {
       setLoading(true)
       try {
-        const token = getToken()
+        const token = await ensureFreshToken()
         const headers: Record<string, string> = {}
         if (token) {
           headers['Authorization'] = `Bearer ${token}`

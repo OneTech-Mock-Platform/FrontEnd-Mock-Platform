@@ -6,4 +6,9 @@ const keycloak = new Keycloak({
   clientId: 'mock-platform-frontend',
 });
 
+
+keycloak.onTokenExpired = () => {
+  keycloak.updateToken(30).catch(() => keycloak.login());
+};
+
 export default keycloak;

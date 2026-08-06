@@ -424,7 +424,7 @@ export default function SpecificationEditPage() {
 						</section>
 
 						{/* ── Pied de page ── */}
-						<div className="spec-edit-footer">
+						{/* <div className="spec-edit-footer">
 							<button
 								type="button"
 								className="spec-save-btn"
@@ -442,7 +442,7 @@ export default function SpecificationEditPage() {
 									</>
 								)}
 							</button>
-						</div>
+						</div> */}
 
 					</div>
 				</main>

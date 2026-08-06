@@ -1588,6 +1588,9 @@ button {
   background: linear-gradient(135deg, #ffffff 0%, #fbfbff 100%);
   border: 1px solid #e6e8f0;
   box-shadow: 0 12px 32px rgba(17, 24, 39, 0.05);
+  position: sticky;  
+  top: 12px;         
+  z-index: 10;
 }
 
 .spec-edit-header .spec-back-btn {
