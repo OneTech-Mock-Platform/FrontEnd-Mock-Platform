@@ -90,6 +90,7 @@ export default function SpecificationPage() {
 	const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null)
 	const [showImport, setShowImport] = useState(false)
 	const [copiedSpecId, setCopiedSpecId] = useState<string | null>(null)
+	const [showPreview, setShowPreview] = useState(true)
 
 	const totalPages = Math.ceil(specs.length / PAGE_SIZE)
 	const paginated = specs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -130,6 +131,7 @@ export default function SpecificationPage() {
 			setImportError('')
 			const draft = await readFileAsDraft(file)
 			setImportDraft(draft)
+			setShowPreview(true) // ← affiche l'aperçu dès qu'un fichier arrive
 		} catch {
 			setImportError('Impossible de lire ce fichier.')
 		}
@@ -353,6 +355,46 @@ export default function SpecificationPage() {
 									/>
 								</div>
 
+								{importDraft.content ? (
+									<div className="import-preview">
+										<button
+											type="button"
+											className="import-preview__toggle"
+											onClick={() => setShowPreview((v) => !v)}
+											aria-expanded={showPreview}
+										>
+											<span className="import-preview__toggle-left">
+												<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+													<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+												</svg>
+												Aperçu du contenu
+											</span>
+											<span className="import-preview__toggle-right">
+												<span className="import-preview__meta">
+													{importDraft.content.split('\n').length} lignes 
+												</span>
+												<svg
+													viewBox="0 0 24 24" width="16" height="16" fill="currentColor"
+													style={{ transform: showPreview ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
+												>
+													<path d="M7 10l5 5 5-5H7z" />
+												</svg>
+											</span>
+										</button>
+
+										{showPreview ? (
+											<div className="import-preview__body">
+												<div className="import-preview__lines" aria-hidden="true">
+													{importDraft.content.split('\n').map((_, i) => (
+														<div key={i + 1} className="spec-line-number">{i + 1}</div>
+													))}
+												</div>
+												<pre className="import-preview__code">{importDraft.content}</pre>
+											</div>
+										) : null}
+									</div>
+								) : null}
+
 								{importError ? <div className="alert alert-warning">{importError}</div> : null}
 
 								<div className="spec-actions">
@@ -362,6 +404,7 @@ export default function SpecificationPage() {
 									<button type="button" className="btn btn-outline-secondary" onClick={() => {
 										setImportDraft(emptyDraft)
 										setImportError('')
+										setShowPreview(true)
 										if (fileInputRef.current) fileInputRef.current.value = ''
 									}}>
 										Réinitialiser

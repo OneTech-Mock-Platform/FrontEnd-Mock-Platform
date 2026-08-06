@@ -388,13 +388,13 @@ export default function ApiReferencePage() {
                       )}
 
                      
-                      {selectedEndpoint.warnings && selectedEndpoint.warnings.length > 0 && (
+                    {/*   {selectedEndpoint.warnings && selectedEndpoint.warnings.length > 0 && (
                         <div className="spec-warning-banner">
                           {selectedEndpoint.warnings.map((w) => (
                             <div key={w.code}>⚠️ {w.message}</div>
                           ))}
                         </div>
-                      )}
+                      )} */}
 
                       {selectedEndpoint.responses?.parameters && selectedEndpoint.responses.parameters.length > 0 && (
                         <div style={{ marginTop: 18, paddingTop: 16, borderTop: '1px solid #eef0f6' }}>

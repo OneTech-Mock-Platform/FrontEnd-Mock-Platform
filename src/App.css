@@ -487,13 +487,17 @@ button {
   margin-top: 8px;
 }
 
-/* ── Import dropzone – file selected state ── */
+/* ── Import dropzone – file selected state ──
+   Une fois un fichier choisi, la zone n'a plus besoin d'être aussi haute
+   que la zone de dépôt vide — on la réduit pour laisser plus de place
+   à l'aperçu du contenu juste en dessous. */
 .import-dropzone.has-file {
+  min-height: 0;
   border-style: solid;
   border-color: #cbd5e1;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  gap: 12px;
-  padding: 24px 28px;
+  gap: 10px;
+  padding: 18px 28px;
 }
 
 .import-dropzone.has-file .import-dropzone__icon--file {
@@ -535,6 +539,78 @@ button {
   background: rgba(0, 0, 0, 0.04);
   padding: 2px 10px;
   border-radius: 6px;
+}
+
+/* ── Aperçu du fichier importé ── */
+.import-preview {
+  margin-top: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.import-preview__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.import-preview__toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.import-preview__toggle-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.import-preview__meta {
+  font-size: 0.75rem;
+}
+
+.import-preview__body {
+  display: flex;
+  background: #0f172a;
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.import-preview__lines {
+  flex-shrink: 0;
+  padding: 14px 10px;
+  text-align: right;
+  color: #475569;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.75rem;
+  user-select: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.import-preview__code {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 14px 16px;
+  color: #e2e8f0;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
 }
 
 .spec-toolbar {
