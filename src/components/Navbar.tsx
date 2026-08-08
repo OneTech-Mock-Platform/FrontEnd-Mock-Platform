@@ -36,7 +36,7 @@ function Navbar() {
 						aria-expanded={isDropdownOpen}
 					>
 						<span className="app-navbar__profile-icon">{initials}</span>
-						<span className="app-navbar__profile-name">{user?.name || 'Utilisateur'}</span>
+						<span className="app-navbar__profile-name">{user?.name || 'User'}</span>
 						<svg className="app-navbar__dropdown-caret" viewBox="0 0 24 24" aria-hidden="true">
 							<path d="M7 10l5 5 5-5H7z" />
 						</svg>
@@ -51,7 +51,7 @@ function Navbar() {
 									<svg viewBox="0 0 24 24" aria-hidden="true">
 										<path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.51 4.51 0 0 0 12 12Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" />
 									</svg>
-									Profil
+									Profile
 								</button>
 							</li>
 							<li>
@@ -62,7 +62,7 @@ function Navbar() {
 									<svg viewBox="0 0 24 24" aria-hidden="true">
 										<path d="M16 17v-3H9v-4h7V7l5 5-5 5ZM14 2a2 2 0 0 1 2 2v2h-2V4H5v16h9v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
 									</svg>
-									Déconnexion
+									Logout
 								</button>
 							</li>
 						</ul>

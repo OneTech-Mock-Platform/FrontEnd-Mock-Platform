@@ -382,7 +382,7 @@ export default function PublicMockPage() {
                     {selectedScenario && (
                       <div className="pm-header-hint">
                         <span className="pm-header-hint__label">
-                          Header to add to target this scenario (Postman, curl…)
+                          Header
                         </span>
                         <div className="pm-header-hint__row">
                           <code className="pm-header-hint__code">Prefer: scenario={selectedScenario.id}</code>
