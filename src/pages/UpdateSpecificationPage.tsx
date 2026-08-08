@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertTriangle, XCircle } from 'lucide-react'
+import { AlertCircle, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { getToken } from '../services/api'
@@ -223,7 +223,10 @@ export default function SpecificationEditPage() {
 				<div className="app-main">
 					<Navbar />
 					<main className="app-stage">
-						<div className="alert alert-danger m-4">{error}</div>
+						<div className="profile-alert profile-alert--error m-4">
+								<AlertCircle size={18} />
+								{error}
+							</div>
 					</main>
 				</div>
 			</div>
@@ -253,9 +256,7 @@ export default function SpecificationEditPage() {
 								<span aria-live="polite">
 									{saveSuccess ? (
 										<span className="spec-saved-badge">
-											<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-												<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-											</svg>
+											<CheckCircle2 size={14} />
 											Enregistré
 										</span>
 									) : null}
@@ -280,7 +281,12 @@ export default function SpecificationEditPage() {
 							</div>
 						</div>
 
-						{error ? <div className="alert alert-danger">{error}</div> : null}
+						{error ? (
+							<div className="profile-alert profile-alert--error">
+								<AlertCircle size={18} />
+								{error}
+							</div>
+						) : null}
 
 						{validationErrors.length > 0 && (
 							<div className="spec-issues-banner spec-issues-banner--error">
@@ -360,19 +366,7 @@ export default function SpecificationEditPage() {
 										placeholder="api.yaml"
 									/>
 								</label>
-								{/* <label className="form-group">
-									<span>Format</span>
-									<select
-										className="form-select"
-										name="format"
-										value={draft.format}
-										onChange={handleFieldChange}
-									>
-										<option value="json">json</option>
-										<option value="yaml">yaml</option>
-										<option value="yml">yml</option>
-									</select>
-								</label> */}
+						
 							</div>
 						</section>
 
@@ -422,27 +416,6 @@ export default function SpecificationEditPage() {
 								</span>
 							</div>
 						</section>
-
-						{/* ── Pied de page ── */}
-						{/* <div className="spec-edit-footer">
-							<button
-								type="button"
-								className="spec-save-btn"
-								onClick={handleSave}
-								disabled={saving}
-							>
-								{saving ? (
-									'Enregistrement…'
-								) : (
-									<>
-										<svg viewBox="0 0 24 24" aria-hidden="true">
-											<path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4Zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6ZM15 9H6V5h9v4Z" />
-										</svg>
-										Enregistrer les modifications
-									</>
-								)}
-							</button>
-						</div> */}
 
 					</div>
 				</main>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, Sparkles, X } from 'lucide-react'
+import { AlertCircle, AlertTriangle, Loader2, Sparkles, X } from 'lucide-react'
 import { getToken } from '../services/api'
 
 export type ScenarioFormSavePayload = {
@@ -10,27 +10,41 @@ export type ScenarioFormSavePayload = {
 	mockContent: string
 }
 
+export type ScenarioFormInitialData = {
+	name?: string
+	description?: string
+	statusCode: number
+	requestExample?: string
+	mockContent?: string
+}
+
 export default function ScenarioFormPanel({
 	endpointId,
 	statusCodes,
+	initialData,
 	onClose,
 	onSaved,
 }: {
 	endpointId: string
 	statusCodes: string[]
+	initialData?: ScenarioFormInitialData
 	onClose: () => void
 	onSaved: (payload: ScenarioFormSavePayload) => void | Promise<void>
 }) {
-	const [name, setName] = useState('')
-	const [description, setDescription] = useState('')
-	const [statusCode, setStatusCode] = useState<number>(statusCodes.length ? Number(statusCodes[0]) : 400)
-	const [requestExample, setRequestExample] = useState('{}')
-	const [mockContent, setMockContent] = useState('{}')
+	const isEditing = !!initialData
+	const [name, setName] = useState(initialData?.name ?? '')
+	const [description, setDescription] = useState(initialData?.description ?? '')
+	const [statusCode, setStatusCode] = useState<number>(
+		initialData?.statusCode ?? (statusCodes.length ? Number(statusCodes[0]) : 400),
+	)
+	const [requestExample, setRequestExample] = useState(initialData?.requestExample ?? '{}')
+	const [mockContent, setMockContent] = useState(initialData?.mockContent ?? '{}')
 	const [aiGenerated, setAiGenerated] = useState(false)
 	const [generating, setGenerating] = useState(false)
 	const [aiError, setAiError] = useState('')
 	const [aiWarning, setAiWarning] = useState('')
 	const [saving, setSaving] = useState(false)
+	const [formError, setFormError] = useState('')
 
 	const handleGenerateAI = async () => {
 		if (!name.trim()) return
@@ -57,6 +71,29 @@ export default function ScenarioFormPanel({
 	}
 
 	const handleSave = async () => {
+		setFormError('')
+
+		if (!name.trim()) {
+			setFormError('Le nom du scénario est obligatoire.')
+			return
+		}
+		if (!description.trim()) {
+			setFormError('La description est obligatoire.')
+			return
+		}
+		try {
+			JSON.parse(requestExample)
+		} catch {
+			setFormError('Le corps de requête exemple doit être un JSON valide.')
+			return
+		}
+		try {
+			JSON.parse(mockContent)
+		} catch {
+			setFormError('Le contenu de la réponse doit être un JSON valide.')
+			return
+		}
+
 		setSaving(true)
 		try {
 			await onSaved({ name, description, statusCode, requestExample, mockContent })
@@ -69,7 +106,7 @@ export default function ScenarioFormPanel({
 		<div className="scenario-panel-overlay" onClick={onClose}>
 			<div className="scenario-panel" onClick={(e) => e.stopPropagation()}>
 				<div className="scenario-panel__header">
-					<h3>Nouveau scénario</h3>
+					<h3>{isEditing ? 'Modifier le scénario' : 'Nouveau scénario'}</h3>
 					<button type="button" className="scenario-panel__close" onClick={onClose} aria-label="Fermer">
 						<X size={18} />
 					</button>
@@ -80,7 +117,7 @@ export default function ScenarioFormPanel({
 					<input
 						className="form-control"
 						value={name}
-						onChange={(e) => setName(e.target.value)}
+						onChange={(e) => { setName(e.target.value); setFormError('') }}
 						placeholder="Ex: Compte inexistant"
 					/>
 				</label>
@@ -90,7 +127,7 @@ export default function ScenarioFormPanel({
 					<input
 						className="form-control"
 						value={description}
-						onChange={(e) => setDescription(e.target.value)}
+						onChange={(e) => { setDescription(e.target.value); setFormError('') }}
 						placeholder="Ex: Le compte fourni n'existe pas en base"
 					/>
 				</label>
@@ -126,12 +163,29 @@ export default function ScenarioFormPanel({
 					)}
 				</button>
 
-				{aiError && <div className="alert alert-warning">{aiError}</div>}
+				{aiError && (
+					<div className="profile-alert profile-alert--warning">
+						<AlertTriangle size={18} />
+						{aiError}
+					</div>
+				)}
 
-				{aiWarning && <div className="alert alert-warning">⚠️ {aiWarning}</div>}
+				{aiWarning && (
+					<div className="profile-alert profile-alert--warning">
+						<AlertTriangle size={18} />
+						{aiWarning}
+					</div>
+				)}
 
 				{aiGenerated && (
 					<div className="scenario-ai-badge"><Sparkles size={13} /> Généré par IA — vérifie avant d'enregistrer</div>
+				)}
+
+				{formError && (
+					<div className="profile-alert profile-alert--error">
+						<AlertCircle size={18} />
+						{formError}
+					</div>
 				)}
 
 				<label className="form-group">
@@ -139,7 +193,7 @@ export default function ScenarioFormPanel({
 					<textarea
 						className="scenario-code-editor"
 						value={requestExample}
-						onChange={(e) => { setRequestExample(e.target.value); setAiGenerated(false) }}
+						onChange={(e) => { setRequestExample(e.target.value); setAiGenerated(false); setFormError('') }}
 						spellCheck={false}
 					/>
 				</label>
@@ -149,7 +203,7 @@ export default function ScenarioFormPanel({
 					<textarea
 						className="scenario-code-editor"
 						value={mockContent}
-						onChange={(e) => { setMockContent(e.target.value); setAiGenerated(false) }}
+						onChange={(e) => { setMockContent(e.target.value); setAiGenerated(false); setFormError('') }}
 						spellCheck={false}
 					/>
 				</label>
@@ -158,8 +212,13 @@ export default function ScenarioFormPanel({
 					<button type="button" className="btn btn-outline-secondary" onClick={onClose}>
 						Annuler
 					</button>
-					<button type="button" className="btn btn-orange" onClick={handleSave} disabled={saving}>
-						{saving ? 'Enregistrement…' : 'Enregistrer'}
+					<button
+						type="button"
+						className="btn btn-orange"
+						onClick={handleSave}
+						disabled={saving || !name.trim() || !description.trim()}
+					>
+						{saving ? 'Enregistrement…' : isEditing ? 'Enregistrer les modifications' : 'Enregistrer'}
 					</button>
 				</div>
 			</div>

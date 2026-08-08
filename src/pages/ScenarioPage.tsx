@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { AlertCircle } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import RequestPayloadBlock from '../components/RequestPayloadBlock'
@@ -151,7 +152,12 @@ export default function ScenarioPage() {
                 </span>
               </div>
 
-              {error && <div className="alert alert-danger">{error}</div>}
+              {error && (
+                <div className="profile-alert profile-alert--error">
+                  <AlertCircle size={18} />
+                  {error}
+                </div>
+              )}
 
              
               {scenarios.length === 0 ? (

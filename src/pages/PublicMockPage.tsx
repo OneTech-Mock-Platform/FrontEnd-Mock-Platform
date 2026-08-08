@@ -1,29 +1,78 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useParams } from 'react-router-dom'
-import { ChevronDown } from 'lucide-react'
+import {
+  Search,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Star,
+  Send,
+  Clock,
+  Link2,
+  Check,
+  AlertTriangle,
+  Copy,
+} from 'lucide-react'
+import JsonCodeBlock from '../components/JsonCodeBlock'
+import { resolvePath, NOISY_HEADERS, type TestResult } from '../lib/mockTest'
+import logo from '../assets/images/onetech_Logo.png'
+import './PublicMockPage.css'
 
-type Scenario = { id: string; statusCode: number; name: string; isDefault: boolean; requestExample?: unknown }
+type Scenario = {
+  id: string
+  statusCode: number
+  name: string
+  description?: string
+  isDefault: boolean
+  requestExample?: Record<string, unknown> | null
+  delayMs?: number
+}
 type Endpoint = { id: string; path: string; method: string; summary?: string; responses?: { tags?: string[] }; scenarios: Scenario[] }
-type TestResult = { requestMethod: string; requestUrl: string; requestBody?: unknown; status: number; body: string }
+type SpecInfo = { id: string; name: string; version?: string; description?: string }
 
-const METHOD_COLORS: Record<string, { bg: string; color: string; border: string }> = {
-  GET:    { bg: 'rgba(34,197,94,0.08)',  color: '#15803d', border: 'rgba(34,197,94,0.25)' },
-  POST:   { bg: 'rgba(59,130,246,0.08)', color: '#1d4ed8', border: 'rgba(59,130,246,0.25)' },
-  PUT:    { bg: 'rgba(234,179,8,0.08)',  color: '#a16207', border: 'rgba(234,179,8,0.25)' },
-  PATCH:  { bg: 'rgba(234,179,8,0.08)',  color: '#a16207', border: 'rgba(234,179,8,0.25)' },
-  DELETE: { bg: 'rgba(239,68,68,0.08)',  color: '#b91c1c', border: 'rgba(239,68,68,0.25)' },
+
+function scenarioLabel(sc: Scenario, method?: string, path?: string): string {
+  const raw = sc.description || sc.name || ''
+  let label = raw
+  if (method && path) {
+    const prefix = `${method} ${path} — `
+    if (raw.startsWith(prefix)) label = raw.slice(prefix.length)
+  }
+  label = label.replace(/^\d+\s*—\s*/, '')
+  return label === String(sc.statusCode) ? '' : label
 }
 
-function statusFamilyStyle(code: number) {
-  if (code < 300) return { bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d' }
-  if (code < 400) return { bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' }
-  if (code < 500) return { bg: '#fffbeb', border: '#fde68a', color: '#a16207' }
-  return { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c' }
+const METHOD_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  GET: { bg: '#dcfce7', color: '#16a34a', border: '#bbf7d0' },
+  POST: { bg: '#dbeafe', color: '#2563eb', border: '#bfdbfe' },
+  PUT: { bg: '#ffedd5', color: '#ea580c', border: '#fed7aa' },
+  PATCH: { bg: '#ffedd5', color: '#ea580c', border: '#fed7aa' },
+  DELETE: { bg: '#fee2e2', color: '#dc2626', border: '#fecaca' },
+}
+function methodStyle(method: string) {
+  return METHOD_COLORS[method] ?? METHOD_COLORS.GET
+}
+
+function familyStyle(code: number) {
+  if (code < 300) return { bg: '#dcfce7', border: '#bbf7d0', color: '#16a34a' }
+  if (code < 400) return { bg: '#dbeafe', border: '#bfdbfe', color: '#2563eb' }
+  if (code < 500) return { bg: '#ffedd5', border: '#fed7aa', color: '#ea580c' }
+  return { bg: '#fee2e2', border: '#fecaca', color: '#dc2626' }
+}
+function familyKey(code: number): string {
+  return `${Math.floor(code / 100)}xx`
+}
+function familyLabel(code: number): string {
+  if (code < 200) return 'Information'
+  if (code < 300) return 'Success'
+  if (code < 400) return 'Redirection'
+  if (code < 500) return 'Client errors'
+  return 'Server errors'
 }
 
 export default function PublicMockPage() {
   const { specId } = useParams<{ specId: string }>()
-  const [specName, setSpecName] = useState('')
+  const [spec, setSpec] = useState<SpecInfo | null>(null)
   const [endpoints, setEndpoints] = useState<Endpoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -32,17 +81,13 @@ export default function PublicMockPage() {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null)
   const [result, setResult] = useState<TestResult | null>(null)
   const [loadingScenario, setLoadingScenario] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false)
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  const [baseUrlCopied, setBaseUrlCopied] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const [headerCopied, setHeaderCopied] = useState(false)
+  const [collapsedTags, setCollapsedTags] = useState<Set<string>>(new Set())
+  const [collapsedFamilies, setCollapsedFamilies] = useState<Set<string>>(new Set())
+  const [rightTab, setRightTab] = useState<'test' | 'details'>('test')
+  const [responseTab, setResponseTab] = useState<'body' | 'headers' | 'infos'>('body')
 
   const baseUrl = `${import.meta.env.VITE_MOCK_BASE_URL ?? window.location.origin}/mock/${specId}`
 
@@ -53,13 +98,13 @@ export default function PublicMockPage() {
           fetch(`/api/public/specs/${specId}`),
           fetch(`/api/public/specs/${specId}/endpoints`),
         ])
-        if (!specRes.ok) throw new Error('Cette spécification est introuvable.')
-        setSpecName((await specRes.json()).name)
+        if (!specRes.ok) throw new Error('This specification could not be found.')
+        setSpec(await specRes.json())
         const items: Endpoint[] = (await epRes.json()).items
         setEndpoints(items)
         setSelectedId(items[0]?.id ?? null)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Erreur de chargement.')
+        setError(e instanceof Error ? e.message : 'Loading error.')
       } finally {
         setLoading(false)
       }
@@ -71,12 +116,14 @@ export default function PublicMockPage() {
     const filtered = endpoints.filter((e) => `${e.method} ${e.path} ${e.summary ?? ''}`.toLowerCase().includes(search.toLowerCase()))
     const byTag = new Map<string, Endpoint[]>()
     for (const ep of filtered) {
-      const tag = ep.responses?.tags?.[0] ?? 'Autres'
+      const tag = ep.responses?.tags?.[0] ?? 'Other'
       if (!byTag.has(tag)) byTag.set(tag, [])
       byTag.get(tag)!.push(ep)
     }
     return Array.from(byTag.entries())
   }, [endpoints, search])
+
+  const totalFiltered = useMemo(() => grouped.reduce((sum, [, eps]) => sum + eps.length, 0), [grouped])
 
   const selected = endpoints.find((e) => e.id === selectedId)
 
@@ -84,181 +131,386 @@ export default function PublicMockPage() {
     if (selected) {
       const def = selected.scenarios.find((s) => s.isDefault) ?? selected.scenarios[0]
       setSelectedScenarioId(def?.id ?? null)
+      setResult(null)
     }
   }, [selectedId])
 
   const selectedScenario = selected?.scenarios.find((s) => s.id === selectedScenarioId)
 
+  const scenarioFamilies = useMemo(() => {
+    if (!selected) return []
+    const byFamily = new Map<string, Scenario[]>()
+    for (const sc of selected.scenarios) {
+      const key = familyKey(sc.statusCode)
+      if (!byFamily.has(key)) byFamily.set(key, [])
+      byFamily.get(key)!.push(sc)
+    }
+    return Array.from(byFamily.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, scenarios]) => ({
+        key,
+        label: familyLabel(scenarios[0].statusCode),
+        style: familyStyle(scenarios[0].statusCode),
+        scenarios: scenarios.sort((a, b) => a.statusCode - b.statusCode),
+      }))
+  }, [selected])
+
+  const testedUrl = selected ? `${baseUrl}${resolvePath(selected.path, {})}` : ''
+
   const testScenario = async (ep: Endpoint, sc: Scenario) => {
     setLoadingScenario(sc.id)
-    const url = `${baseUrl}${ep.path.replace(/\{[^}]+\}/g, 'test-id')}`
+    setResponseTab('body')
+    const url = `${baseUrl}${resolvePath(ep.path, {})}`
+    const start = performance.now()
     try {
       const res = await fetch(url, { method: ep.method, headers: { Prefer: `scenario=${sc.id}` } })
-      const raw = await res.text()
-      let formatted = raw
-      try { formatted = JSON.stringify(JSON.parse(raw), null, 2) } catch { /* pas du JSON, on garde le texte brut */ }
-      setResult({ requestMethod: ep.method, requestUrl: url, requestBody: sc.requestExample, status: res.status, body: formatted })
+      const timeMs = Math.round(performance.now() - start)
+      const body = await res.text()
+      const headers: Record<string, string> = {}
+      res.headers.forEach((v, k) => { headers[k] = v })
+      setResult({ scenarioId: sc.id, status: res.status, headers, body, timeMs })
+    } catch {
+      setResult({ scenarioId: sc.id, error: 'Could not reach the mock server (is the backend running?).' })
     } finally {
       setLoadingScenario(null)
     }
   }
 
-  if (loading) return <div style={{ display: 'grid', placeItems: 'center', height: '100vh', color: '#64748b' }}>Chargement…</div>
-  if (error) return <div style={{ display: 'grid', placeItems: 'center', height: '100vh', color: '#b91c1c' }}>{error}</div>
+  const toggleTag = (tag: string) => {
+    setCollapsedTags((prev) => {
+      const next = new Set(prev)
+      if (next.has(tag)) next.delete(tag)
+      else next.add(tag)
+      return next
+    })
+  }
+  const toggleFamily = (key: string) => {
+    setCollapsedFamilies((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  if (loading) return <div className="pm-loading">Loading…</div>
+  if (error) return <div className="pm-page-error">{error}</div>
+
+  const activeResult = result && result.scenarioId === selectedScenarioId ? result : null
+  const filteredHeaders = Object.entries(activeResult?.headers ?? {}).filter(([key]) => !NOISY_HEADERS.has(key.toLowerCase()))
+  const responseBodySize = activeResult?.body ? new TextEncoder().encode(activeResult.body).length : 0
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: 'system-ui, sans-serif' }}>
-      <header style={{ background: '#0f172a', padding: '16px 24px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 30, height: 30, borderRadius: 8, background: '#f7941d', display: 'grid', placeItems: 'center', color: 'white', fontWeight: 700 }}>M</div>
-        <span style={{ color: 'white', fontWeight: 600 }}>Mock Platform</span>
-        <span style={{ color: '#64748b', marginLeft: 8 }}>/ {specName}</span>
-      </header>
+    <div className="pm-page">
+      <div className="pm-topbar">
+        <div className="pm-topbar__brand">
+          <img src={logo} alt="OneTech" className="pm-topbar__logo" />
+          <span className="pm-topbar__brand-name">Mock Server</span>
+          <span className="pm-topbar__public-badge">Public</span>
+        </div>
 
-   
-      <div style={{ background: 'white', borderBottom: '1px solid #e2e8f0', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap' }}>URL de base :</span>
-        <code style={{ flex: 1, fontSize: '0.8rem', background: '#0f172a', color: '#e2e8f0', borderRadius: 6, padding: '6px 12px', maxWidth: 600, overflow: 'auto', whiteSpace: 'nowrap' }}>
-          {baseUrl}
-        </code>
-        <button
-          onClick={() => { void navigator.clipboard.writeText(baseUrl); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
-          style={{ background: '#f7941d', color: 'white', border: 'none', borderRadius: 6, padding: '6px 14px', fontWeight: 600, cursor: 'pointer', fontSize: '0.78rem' }}
-        >
-          {copied ? '✓ Copié' : 'Copier'}
-        </button>
+        <div className="pm-topbar__spec">
+          <div className="pm-topbar__spec-info">
+            <div className="pm-topbar__spec-icon"><FileText size={16} /></div>
+            <div>
+              <div className="pm-topbar__spec-title-row">
+                <span className="pm-topbar__spec-title">{spec?.name}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pm-topbar__actions">
+            <button
+              type="button"
+              className="pm-topbar__copy-base-btn"
+              onClick={() => { void navigator.clipboard.writeText(baseUrl); setBaseUrlCopied(true); setTimeout(() => setBaseUrlCopied(false), 1500) }}
+            >
+              {baseUrlCopied ? <Check size={14} /> : <Copy size={14} />}
+              {baseUrlCopied ? 'Copied!' : 'Copy'}
+            </button>
+            <div className="pm-topbar__baseurl-chip">
+              <span className="pm-topbar__baseurl-label">Base URL</span>
+              <div className="pm-topbar__baseurl-row">
+                <span className="pm-topbar__baseurl-value">{baseUrl}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      
-      <div style={{ display: 'flex', height: 'calc(100vh - 108px)' }}>
+      <div className="pm-body">
+        <aside className="pm-sidebar">
+          <div className="pm-sidebar__search">
+            <Search size={15} />
+            <input placeholder="Search an endpoint…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <p className="pm-sidebar__header">Endpoints ({totalFiltered})</p>
 
-      
-        <aside style={{ width: 320, borderRight: '1px solid #e2e8f0', background: 'white', overflowY: 'auto', padding: 16, flexShrink: 0 }}>
-          <input
-            placeholder="Rechercher un endpoint…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: 16, fontSize: '0.85rem' }}
-          />
-          {grouped.map(([tag, eps]) => (
-            <div key={tag} style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>{tag}</p>
-              {eps.map((ep) => {
-                const meta = METHOD_COLORS[ep.method] ?? METHOD_COLORS.GET
-                const active = ep.id === selectedId
-                return (
-                  <button
-                    key={ep.id}
-                    onClick={() => { setSelectedId(ep.id); setResult(null); setDropdownOpen(false) }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
-                      padding: '8px 10px', borderRadius: 8, border: active ? '1px solid #f7941d' : '1px solid transparent',
-                      background: active ? 'rgba(247,148,29,0.08)' : 'transparent', cursor: 'pointer', marginBottom: 4,
-                    }}
-                  >
-                    <span style={{ background: meta.bg, color: meta.color, fontWeight: 700, fontSize: '0.65rem', padding: '2px 6px', borderRadius: 4, minWidth: 42, textAlign: 'center' }}>
-                      {ep.method}
-                    </span>
-                    <span style={{ fontSize: '0.78rem', color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {ep.path}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          ))}
+          {grouped.length === 0 && <p className="pm-sidebar__empty">No endpoint matches this search.</p>}
+
+          {grouped.map(([tag, eps]) => {
+            const collapsed = collapsedTags.has(tag)
+            return (
+              <div key={tag} className="pm-sidebar__group">
+                <button className="pm-sidebar__group-header" data-collapsed={collapsed} onClick={() => toggleTag(tag)}>
+                  <ChevronDown size={14} />
+                  <span>{tag}</span>
+                  <span className="pm-sidebar__group-count">{eps.length}</span>
+                </button>
+                {!collapsed && eps.map((ep) => {
+                  const meta = methodStyle(ep.method)
+                  const active = ep.id === selectedId
+                  return (
+                    <button
+                      key={ep.id}
+                      className={`pm-sidebar__endpoint ${active ? 'pm-sidebar__endpoint--active' : ''}`}
+                      onClick={() => setSelectedId(ep.id)}
+                    >
+                      <span className="pm-method-badge" style={{ background: meta.bg, color: meta.color }}>{ep.method}</span>
+                      <span className="pm-sidebar__endpoint-path">{ep.path}</span>
+                      <ChevronRight size={14} className="pm-sidebar__endpoint-chevron" />
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })}
         </aside>
 
-     
-        <main style={{ flex: 1, overflowY: 'auto', padding: 28 }}>
-          {selected && (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-                <span style={{ background: (METHOD_COLORS[selected.method] ?? METHOD_COLORS.GET).bg, color: (METHOD_COLORS[selected.method] ?? METHOD_COLORS.GET).color, fontWeight: 700, fontSize: '0.8rem', padding: '5px 12px', borderRadius: 6 }}>
+        {selected && (
+          <>
+            <main className="pm-main">
+              <div className="pm-main__title-row">
+                <span className="pm-method-badge" style={{ background: methodStyle(selected.method).bg, color: methodStyle(selected.method).color }}>
                   {selected.method}
                 </span>
-                <code style={{ fontSize: '1rem' }}>{selected.path}</code>
+                <code className="pm-main__path">{selected.path}</code>
               </div>
-              {selected.summary && <p style={{ color: '#64748b', marginBottom: 24 }}>{selected.summary}</p>}
+              {selected.summary && <p className="pm-main__description">{selected.summary}</p>}
 
-              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 10 }}>
-                Scénario
-              </p>
+              <p className="pm-main__section-label">Available scenarios</p>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-                <div ref={dropdownRef} style={{ position: 'relative' }}>
-                  <button
-                    onClick={() => setDropdownOpen((o) => !o)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                      padding: '10px 14px', borderRadius: 8,
-                      border: `1px solid ${selectedScenario ? statusFamilyStyle(selectedScenario.statusCode).border : '#e2e8f0'}`,
-                      background: selectedScenario ? statusFamilyStyle(selectedScenario.statusCode).bg : 'white',
-                      color: selectedScenario ? statusFamilyStyle(selectedScenario.statusCode).color : '#334155',
-                      fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
-                    }}
+              {scenarioFamilies.length === 0 && <p style={{ color: 'var(--pm-text-muted)', fontSize: '0.85rem' }}>No scenario available for this endpoint.</p>}
+
+              {scenarioFamilies.map((family) => {
+                const collapsed = collapsedFamilies.has(family.key)
+                return (
+                  <div
+                    key={family.key}
+                    className="pm-scenario-group"
+                    style={{ '--pm-scenario-group-accent': family.style.color } as CSSProperties}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: selectedScenario ? statusFamilyStyle(selectedScenario.statusCode).color : '#94a3b8' }} />
-                      <span>{selectedScenario ? selectedScenario.statusCode : '—'}</span>
-                    </span>
-                    <ChevronDown size={14} style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
-                  </button>
+                    <button
+                      className="pm-scenario-group__header"
+                      data-collapsed={collapsed}
+                      onClick={() => toggleFamily(family.key)}
+                      style={{ color: family.style.color, background: family.style.bg }}
+                    >
+                      <ChevronDown size={14} />
+                      <span>{family.key} — {family.label}</span>
+                      <span className="pm-scenario-group__count" style={{ background: family.style.border, color: family.style.color }}>
+                        {family.scenarios.length}
+                      </span>
+                    </button>
+                    {!collapsed && family.scenarios.map((sc) => {
+                      const style = familyStyle(sc.statusCode)
+                      const label = scenarioLabel(sc, selected.method, selected.path)
+                      return (
+                        <button
+                          key={sc.id}
+                          className={`pm-scenario-card ${sc.id === selectedScenarioId ? 'pm-scenario-card--active' : ''}`}
+                          onClick={() => { setSelectedScenarioId(sc.id); setResult(null) }}
+                        >
+                          <span className="pm-scenario-card__code" style={{ color: style.color }}>{sc.statusCode}</span>
+                          <span className="pm-scenario-card__text">
+                            <span className="pm-scenario-card__name">
+                              {label || `${sc.statusCode}`}
+                            </span>
+                          </span>
+                          <ChevronRight size={14} className="pm-scenario-card__chevron" />
+                        </button>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </main>
 
-                  {dropdownOpen && selected && (
-                    <div style={{ position: 'absolute', top: '110%', left: 0, right: 0, background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.08)', zIndex: 20 }}>
-                      {selected.scenarios.map((sc) => {
-                        const style = statusFamilyStyle(sc.statusCode)
-                        return (
-                          <button
-                            key={sc.id}
-                            onClick={() => { setSelectedScenarioId(sc.id); setDropdownOpen(false); setResult(null) }}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
-                              padding: '10px 14px', border: 'none', background: sc.id === selectedScenarioId ? '#f8fafc' : 'white',
-                              cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: style.color,
-                            }}
-                          >
-                            <span style={{ width: 8, height: 8, borderRadius: '50%', background: style.color }} />
-                            {sc.statusCode}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => selected && selectedScenario && void testScenario(selected, selectedScenario)}
-                  disabled={loadingScenario === selectedScenarioId}
-                  style={{ background: '#f7941d', color: 'white', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                  {loadingScenario === selectedScenarioId ? 'Test en cours…' : '▶ Tester'}
+            <section className="pm-test">
+              <div className="pm-test__tabs">
+                <button className={`pm-test__tab ${rightTab === 'test' ? 'pm-test__tab--active' : ''}`} onClick={() => setRightTab('test')}>
+                  Test the scenario
+                </button>
+                <button className={`pm-test__tab ${rightTab === 'details' ? 'pm-test__tab--active' : ''}`} onClick={() => setRightTab('details')}>
+                  Endpoint details
                 </button>
               </div>
 
-              {result && (
-                <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 16, color: result.status < 400 ? '#15803d' : '#b91c1c' }}>
-                    Statut {result.status}
+              {rightTab === 'details' ? (
+                <div className="pm-details-panel">
+                  <div className="pm-details-panel__row">
+                    <span className="pm-details-panel__label">Method</span>
+                    <span className="pm-method-badge" style={{ background: methodStyle(selected.method).bg, color: methodStyle(selected.method).color }}>
+                      {selected.method}
+                    </span>
                   </div>
-                  <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>Requête envoyée</p>
-                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 10, marginBottom: 6, fontFamily: 'monospace', fontSize: '0.78rem' }}>
-                    {result.requestMethod} {result.requestUrl}
+                  <div className="pm-details-panel__row">
+                    <span className="pm-details-panel__label">Path</span>
+                    <span className="pm-details-panel__value pm-details-panel__value--code">{selected.path}</span>
                   </div>
-                  {result.requestBody != null && (
-                    <pre style={{ background: '#0f172a', color: '#e2e8f0', borderRadius: 8, padding: 12, fontSize: '0.75rem', overflow: 'auto', maxHeight: 160, marginBottom: 18 }}>
-                      {JSON.stringify(result.requestBody, null, 2)}
-                    </pre>
-                  )}
-                  <p style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>Réponse reçue</p>
-                  <pre style={{ background: '#0f172a', color: '#e2e8f0', borderRadius: 8, padding: 12, fontSize: '0.75rem', overflow: 'auto', maxHeight: 320 }}>
-                    {result.body || '(pas de contenu)'}
-                  </pre>
+                  <div className="pm-details-panel__row">
+                    <span className="pm-details-panel__label">Summary</span>
+                    <span className="pm-details-panel__value">{selected.summary || '—'}</span>
+                  </div>
+                  <div className="pm-details-panel__row">
+                    <span className="pm-details-panel__label">Group</span>
+                    <span className="pm-details-panel__tag">{selected.responses?.tags?.[0] ?? 'Other'}</span>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  {selectedScenario?.requestExample && (
+                    <div className="pm-test__section">
+                      <p className="pm-test__section-title">Request</p>
+                      <JsonCodeBlock value={selectedScenario.requestExample} />
+                    </div>
+                  )}
+
+                  <div className="pm-test__section">
+                    <p className="pm-test__section-title">Test with this scenario</p>
+
+                    {selectedScenario && (
+                      <div className="pm-header-hint">
+                        <span className="pm-header-hint__label">
+                          Header to add to target this scenario (Postman, curl…)
+                        </span>
+                        <div className="pm-header-hint__row">
+                          <code className="pm-header-hint__code">Prefer: scenario={selectedScenario.id}</code>
+                          <button
+                            type="button"
+                            className={`pm-icon-btn pm-header-hint__copy ${headerCopied ? 'pm-icon-btn--copied' : ''}`}
+                            onClick={() => {
+                              void navigator.clipboard.writeText(`Prefer: scenario=${selectedScenario.id}`)
+                              setHeaderCopied(true)
+                              setTimeout(() => setHeaderCopied(false), 1500)
+                            }}
+                            title="Copy header"
+                            aria-label="Copy header"
+                          >
+                            {headerCopied ? <Check size={14} /> : <Copy size={14} />}
+                          </button>
+                        </div>
+
+                      </div>
+                    )}
+
+                    <div className="pm-test__run-row">
+                      <button
+                        className="pm-test__send-btn"
+                        disabled={!selectedScenario || loadingScenario === selectedScenarioId}
+                        onClick={() => selected && selectedScenario && void testScenario(selected, selectedScenario)}
+                      >
+                        <Send size={14} />
+                        {loadingScenario === selectedScenarioId ? 'Sending…' : 'Send request'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pm-test__section">
+                    <p className="pm-test__section-title">Response</p>
+
+                    {!activeResult && (
+                      <div className="pm-test__empty">
+                        No test run for this scenario yet. Click "Send request" to call the mock server live.
+                      </div>
+                    )}
+
+                    {activeResult?.error && (
+                      <div className="pm-test__error" role="alert">
+                        <AlertTriangle size={18} />
+                        <span>{activeResult.error}</span>
+                      </div>
+                    )}
+
+                    {activeResult && !activeResult.error && (
+                      <>
+                        <div className="pm-response__status-row">
+                          {typeof activeResult.status === 'number' && (
+                            <span
+                              className="pm-response__status-pill"
+                              style={{
+                                background: familyStyle(activeResult.status).bg,
+                                color: familyStyle(activeResult.status).color,
+                                borderColor: familyStyle(activeResult.status).border,
+                              }}
+                            >
+                              {activeResult.status}
+                            </span>
+                          )}
+                          {typeof activeResult.status === 'number' && (
+                            <span className="pm-response__family-pill">{familyLabel(activeResult.status)}</span>
+                          )}
+                          <button
+                            className={`pm-icon-btn ${linkCopied ? 'pm-icon-btn--copied' : ''}`}
+                            style={{ marginLeft: typeof activeResult.status === 'number' ? 0 : 'auto' }}
+                            onClick={() => { void navigator.clipboard.writeText(testedUrl); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 1500) }}
+                            title={linkCopied ? 'Link copied' : 'Copy tested link'}
+                            aria-label={linkCopied ? 'Link copied' : 'Copy tested link'}
+                          >
+                            {linkCopied ? <Check size={14} /> : <Link2 size={14} />}
+                          </button>
+                          {typeof activeResult.timeMs === 'number' && (
+                            <span className="pm-response__time">{activeResult.timeMs} ms</span>
+                          )}
+                        </div>
+
+                        <div className="pm-response__tabs">
+                          <button className={`pm-response__subtab ${responseTab === 'body' ? 'pm-response__subtab--active' : ''}`} onClick={() => setResponseTab('body')}>
+                            Body
+                          </button>
+                          <button className={`pm-response__subtab ${responseTab === 'headers' ? 'pm-response__subtab--active' : ''}`} onClick={() => setResponseTab('headers')}>
+                            Headers ({filteredHeaders.length})
+                          </button>
+                          <button className={`pm-response__subtab ${responseTab === 'infos' ? 'pm-response__subtab--active' : ''}`} onClick={() => setResponseTab('infos')}>
+                            Info
+                          </button>
+                        </div>
+
+                        {responseTab === 'body' && <JsonCodeBlock value={activeResult.body} />}
+
+                        {responseTab === 'headers' && (
+                          <div className="pm-response__headers">
+                            {filteredHeaders.length === 0 && <div className="pm-response__header-row"><span className="pm-response__header-value">No notable headers.</span></div>}
+                            {filteredHeaders.map(([key, value]) => (
+                              <div key={key} className="pm-response__header-row">
+                                <span className="pm-response__header-key">{key}</span>
+                                <span className="pm-response__header-value">{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {responseTab === 'infos' && (
+                          <div className="pm-response__infos">
+                            <div className="pm-response__header-row"><span className="pm-response__header-key">Method</span><span className="pm-response__header-value">{selected.method}</span></div>
+                            <div className="pm-response__header-row"><span className="pm-response__header-key">Tested URL</span><span className="pm-response__header-value">{testedUrl}</span></div>
+                            <div className="pm-response__header-row"><span className="pm-response__header-key">Status</span><span className="pm-response__header-value">{activeResult.status}</span></div>
+                            <div className="pm-response__header-row"><span className="pm-response__header-key">Response time</span><span className="pm-response__header-value">{activeResult.timeMs} ms</span></div>
+                          </div>
+                        )}
+
+                        <div className="pm-response__footer">
+                          <span><Clock size={13} /> Response time: {activeResult.timeMs} ms</span>
+                          <span>Size: {responseBodySize} B</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
               )}
-            </>
-          )}
-        </main>
+            </section>
+          </>
+        )}
       </div>
     </div>
   )

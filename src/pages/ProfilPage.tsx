@@ -134,20 +134,6 @@ export default function ProfilPage() {
               </div>
             </div>
 
-            {error && (
-              <div className="profile-alert profile-alert--error">
-                <AlertCircle size={18} />
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="profile-alert profile-alert--success">
-                <CheckCircle2 size={18} />
-                {success}
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="spec-card profile-section">
                 <div className="profile-section__header">
@@ -235,7 +221,7 @@ export default function ProfilPage() {
                       value={formData.newPassword}
                       onChange={handleChange}
                       className="profile-input"
-                      placeholder="Nouveau mot de passe (min. 6 caractères)"
+                      placeholder="Nouveau mot de passe"
                     />
                   </div>
                 </div>
@@ -255,6 +241,21 @@ export default function ProfilPage() {
                   </div>
                 </div>
               </div>
+
+           
+              {error && (
+                <div className="profile-alert profile-alert--error">
+                  <AlertCircle size={18} />
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="profile-alert profile-alert--success">
+                  <CheckCircle2 size={18} />
+                  {success}
+                </div>
+              )}
 
               <div className="spec-actions">
                 <button type="submit" disabled={loading} className="spec-save-btn">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, ChevronDown, Copy, FileJson, Plus, Search, Send, Sparkles } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Check, ChevronDown, Copy, FileJson, Pencil, Plus, Search, Send, Sparkles, Trash2 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import RequestPayloadBlock from '../components/RequestPayloadBlock'
@@ -50,6 +50,19 @@ type Scenario = {
   requestExample?: Record<string, unknown> | null
 }
 
+
+function scenarioLabel(sc: Scenario, method?: string, path?: string): string {
+  const raw = sc.description || sc.name || ''
+  let label = raw
+  if (method && path) {
+    const prefix = `${method} ${path} — `
+    if (raw.startsWith(prefix)) label = raw.slice(prefix.length)
+  }
+  label = label.replace(/^\d+\s*—\s*/, '')
+
+  return label === String(sc.statusCode) ? '' : label
+}
+
 const methodColors: Record<string, { bg: string; text: string; border: string }> = {
   GET: { bg: 'rgba(34,197,94,0.12)', text: '#15803d', border: 'rgba(34,197,94,0.25)' },
   POST: { bg: 'rgba(59,130,246,0.12)', text: '#1d4ed8', border: 'rgba(59,130,246,0.25)' },
@@ -75,6 +88,9 @@ export default function ApiReferencePage() {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [showScenarioPanel, setShowScenarioPanel] = useState(false)
+  const [editingScenario, setEditingScenario] = useState<Scenario | null>(null)
+  const [deleteScenarioTarget, setDeleteScenarioTarget] = useState<Scenario | null>(null)
+  const [deletingScenario, setDeletingScenario] = useState(false)
 
   const [activeTab, setActiveTab] = useState<'stored' | 'live'>('live')
   const [pathParams, setPathParams] = useState<Record<string, string>>({})
@@ -164,12 +180,15 @@ export default function ApiReferencePage() {
       return
     }
 
+    const isEditing = !!editingScenario
+    const url = isEditing ? `/api/scenarios/${editingScenario!.id}` : '/api/scenarios'
+
     try {
-      const res = await fetch('/api/scenarios', {
-        method: 'POST',
+      const res = await fetch(url, {
+        method: isEditing ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
-          endpointId,
+          ...(isEditing ? {} : { endpointId }),
           name: payload.name || undefined,
           description: payload.description || undefined,
           statusCode: payload.statusCode,
@@ -177,12 +196,31 @@ export default function ApiReferencePage() {
           mockContent: payload.mockContent,
         }),
       })
-      if (!res.ok) throw new Error("La création du scénario a échoué.")
-      const created = await res.json() as { id: string }
+      if (!res.ok) throw new Error(isEditing ? 'La modification du scénario a échoué.' : "La création du scénario a échoué.")
+      const saved = await res.json() as { id: string }
       setShowScenarioPanel(false)
-      await loadScenarios(created.id)
+      setEditingScenario(null)
+      await loadScenarios(saved.id)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur.')
+    }
+  }
+
+  async function handleDeleteScenario() {
+    if (!deleteScenarioTarget) return
+    setDeletingScenario(true)
+    try {
+      const res = await fetch(`/api/scenarios/${deleteScenarioTarget.id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      })
+      if (!res.ok) throw new Error('La suppression du scénario a échoué.')
+      setDeleteScenarioTarget(null)
+      await loadScenarios()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur.')
+    } finally {
+      setDeletingScenario(false)
     }
   }
 
@@ -289,7 +327,12 @@ export default function ApiReferencePage() {
               </div>
             </div>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            {error && (
+              <div className="profile-alert profile-alert--error">
+                <AlertCircle size={18} />
+                {error}
+              </div>
+            )}
 
             <div className="api-ref-grid">
             
@@ -448,7 +491,8 @@ export default function ApiReferencePage() {
                       ) : (
                         <>
                          
-                          <div style={{ position: 'relative', marginBottom: 18, display: 'inline-block' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+                          <div style={{ position: 'relative', display: 'inline-block' }}>
                             <button
                               type="button"
                               className="btn"
@@ -473,9 +517,11 @@ export default function ApiReferencePage() {
                               }}
                             >
                               {selectedScenario ? selectedScenario.statusCode : '—'}
-                              <span style={{ fontFamily: 'inherit', fontWeight: 500, fontSize: '0.85rem' }}>
-                             {/*    {selectedScenario?.description || selectedScenario?.name || ''} */}
-                              </span>
+                              {selectedScenario && scenarioLabel(selectedScenario, selectedEndpoint?.method, selectedEndpoint?.path) && (
+                                <span style={{ fontFamily: 'inherit', fontWeight: 500, fontSize: '0.85rem' }}>
+                                  {scenarioLabel(selectedScenario, selectedEndpoint?.method, selectedEndpoint?.path)}
+                                </span>
+                              )}
                               {selectedScenario && !selectedScenario.mockContentIsAuto && (
                                 <span title="Scénario personnalisé (créé manuellement ou via l'IA)" style={{ display: 'flex' }}>
                                   <Sparkles size={14} color="#f7941d" />
@@ -507,7 +553,7 @@ export default function ApiReferencePage() {
                                           {sc.statusCode}
                                         </span>
                                         <span style={{ fontSize: '0.82rem', color: '#475569', flex: 1 }}>
-                                        {/*   {sc.description || sc.name || ''} */}
+                                          {scenarioLabel(sc, selectedEndpoint?.method, selectedEndpoint?.path)}
                                         </span>
                                         {!sc.mockContentIsAuto && (
                                           <span title="Scénario personnalisé (créé manuellement ou via l'IA)" style={{ display: 'flex' }}>
@@ -521,9 +567,33 @@ export default function ApiReferencePage() {
                             )}
                           </div>
 
-                    
+                          {selectedScenario && (
+                            <>
+                              <button
+                                type="button"
+                                className="scenario-action-btn"
+                                title="Modifier ce scénario"
+                                aria-label="Modifier ce scénario"
+                                onClick={() => setEditingScenario(selectedScenario)}
+                              >
+                                <Pencil size={15} />
+                              </button>
+                              <button
+                                type="button"
+                                className="scenario-action-btn scenario-action-btn--danger"
+                                title="Supprimer ce scénario"
+                                aria-label="Supprimer ce scénario"
+                                onClick={() => setDeleteScenarioTarget(selectedScenario)}
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </>
+                          )}
+                          </div>
+
+
                           <>
-                            
+
                               <RequestPayloadBlock requestExample={selectedScenario?.requestExample} statusCode={selectedScenario?.statusCode} />
 
                               {testResult?.scenarioId !== selectedScenario?.id || !testResult ? (
@@ -561,13 +631,72 @@ export default function ApiReferencePage() {
       </div>
     </div>
 
-    {showScenarioPanel && selectedEndpoint && (
+    {(showScenarioPanel || editingScenario) && selectedEndpoint && (
       <ScenarioFormPanel
         endpointId={selectedEndpoint.id}
         statusCodes={(selectedEndpoint.responses?.responses ?? []).map((r) => r.statusCode)}
-        onClose={() => setShowScenarioPanel(false)}
+        initialData={
+          editingScenario
+            ? {
+                name: editingScenario.name,
+                description: editingScenario.description,
+                statusCode: editingScenario.statusCode,
+                requestExample: JSON.stringify(editingScenario.requestExample ?? {}, null, 2),
+                mockContent: editingScenario.mockContent ?? '{}',
+              }
+            : undefined
+        }
+        onClose={() => { setShowScenarioPanel(false); setEditingScenario(null) }}
         onSaved={handleScenarioSaved}
       />
+    )}
+
+    {deleteScenarioTarget && (
+      <div className="spec-modal-overlay" onClick={() => setDeleteScenarioTarget(null)}>
+        <div className="spec-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className="spec-modal__close"
+            onClick={() => setDeleteScenarioTarget(null)}
+            aria-label="Fermer la fenêtre de confirmation"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71l-1.41-1.42L9.17 12 2.89 5.71 4.3 4.3l6.29 6.29 6.29-6.29z"/>
+            </svg>
+          </button>
+
+          <div className="spec-modal__icon spec-modal__icon--danger">
+            <Trash2 size={26} />
+          </div>
+
+          <h3 className="spec-modal__title">Supprimer ce scénario ?</h3>
+          <p className="spec-modal__body">
+            Vous êtes sur le point de supprimer définitivement le scénario{' '}
+            <strong>
+              {deleteScenarioTarget.statusCode}
+              {selectedEndpoint ? ` — ${scenarioLabel(deleteScenarioTarget, selectedEndpoint.method, selectedEndpoint.path)}` : ''}
+            </strong>.
+          </p>
+
+          <div className="spec-modal__warning">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2 1 21h22L12 2Zm0 5.5 6.53 11.5H5.47L12 7.5ZM11 10v4h2v-4h-2Zm0 5v2h2v-2h-2Z" />
+            </svg>
+            Cette action est irréversible.
+          </div>
+
+          <div className="spec-modal__actions">
+            <button
+              type="button"
+              className="spec-modal__btn spec-modal__btn--danger"
+              onClick={() => void handleDeleteScenario()}
+              disabled={deletingScenario}
+            >
+              {deletingScenario ? 'Suppression…' : 'Supprimer définitivement'}
+            </button>
+          </div>
+        </div>
+      </div>
     )}
     </>
   )

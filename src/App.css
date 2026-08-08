@@ -2126,12 +2126,13 @@ button {
 .spec-saved-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 0.78rem;
+  font-weight: 600;
   color: #15803d;
   background: rgba(34,197,94,0.1);
-  padding: 4px 10px;
-  border-radius: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
   border: 1px solid rgba(34,197,94,0.25);
 }
 
@@ -2705,6 +2706,36 @@ button {
   cursor: pointer;
   transition: all 0.15s ease;
   flex-shrink: 0;
+}
+
+/* ── Actions discrètes à côté du dropdown de scénario — pas des boutons
+   pleins et colorés comme dans une ligne de tableau, juste un contour
+   neutre, la couleur n'apparaît qu'au survol. ── */
+.scenario-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #e6e8f0;
+  background: #f9fafc;
+  color: #8a90a2;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.scenario-action-btn:hover {
+  border-color: #f7941d;
+  color: #f7941d;
+  background: #fff7ed;
+}
+
+.scenario-action-btn--danger:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: #fef2f2;
 }
 
 .spec-back-icon-btn:hover {
@@ -3421,6 +3452,19 @@ body.sidebar-collapsed {
   word-break: break-all;
 }
 
+.response-viewer__method {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Fira Code', monospace;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
 .response-viewer__status {
   display: inline-flex;
   align-items: center;
@@ -3466,6 +3510,13 @@ body.sidebar-collapsed {
 .response-viewer__retry:focus-visible {
   outline: 2px solid var(--color-orange, #e76f23);
   outline-offset: 2px;
+}
+.response-viewer__retry--icon {
+  padding: 7px;
+  background: #f4f6fb;
+}
+.response-viewer__retry--icon:hover {
+  background: #fdece0;
 }
 
 .response-viewer__headers {
@@ -4173,6 +4224,12 @@ body.sidebar-collapsed {
   background: rgba(34, 197, 94, 0.08);
   border: 1px solid rgba(34, 197, 94, 0.25);
   color: #15803d;
+}
+
+.profile-alert--warning {
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: #a16207;
 }
 
 .profile-section__header {

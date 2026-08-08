@@ -5,18 +5,17 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext'
 import keycloak from './keycloak'
 
+
 keycloak
-  .init({ onLoad: 'login-required', pkceMethod: 'S256' })
-  .then((authenticated) => {
-    if (authenticated) {
-      createRoot(document.getElementById('root')).render(
-        <StrictMode>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </StrictMode>,
-      )
-    }
+  .init({ onLoad: 'check-sso', pkceMethod: 'S256' })
+  .then(() => {
+    createRoot(document.getElementById('root')).render(
+      <StrictMode>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </StrictMode>,
+    )
   })
   .catch((err) => {
     console.error("Échec d'initialisation Keycloak", err)

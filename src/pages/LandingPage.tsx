@@ -11,7 +11,7 @@ import {
 	Legend,
 	type Plugin,
 } from 'chart.js'
-import { FileText, Link2, FlaskConical, Layers, ListChecks, ShieldCheck } from 'lucide-react'
+import { AlertCircle, FileText, Link2, FlaskConical, Layers, ListChecks, ShieldCheck } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { getToken } from '../services/api'
@@ -162,7 +162,12 @@ function LandingPage() {
 							</div>
 						</header>
 
-						{error ? <div className="alert alert-danger">{error}</div> : null}
+						{error ? (
+							<div className="profile-alert profile-alert--error">
+								<AlertCircle size={18} />
+								{error}
+							</div>
+						) : null}
 
 						{loading ? (
 							<div className="spec-empty">

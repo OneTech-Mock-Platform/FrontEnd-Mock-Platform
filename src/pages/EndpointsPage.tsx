@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { AlertCircle } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { getToken } from '../services/api'
@@ -101,7 +102,10 @@ export default function EndpointsPage() {
 				<div className="app-main">
 					<Navbar />
 					<main className="app-stage">
-						<div className="alert alert-danger m-4">{error}</div>
+						<div className="profile-alert profile-alert--error m-4">
+								<AlertCircle size={18} />
+								{error}
+							</div>
 					</main>
 				</div>
 			</div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 import { getToken } from '../services/api'
@@ -89,7 +90,6 @@ export default function SpecificationPage() {
 	const deleteCancelRef = useRef<HTMLButtonElement | null>(null)
 	const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null)
 	const [showImport, setShowImport] = useState(false)
-	const [copiedSpecId, setCopiedSpecId] = useState<string | null>(null)
 	const [showPreview, setShowPreview] = useState(true)
 
 	const totalPages = Math.ceil(specs.length / PAGE_SIZE)
@@ -131,7 +131,7 @@ export default function SpecificationPage() {
 			setImportError('')
 			const draft = await readFileAsDraft(file)
 			setImportDraft(draft)
-			setShowPreview(true) // ← affiche l'aperçu dès qu'un fichier arrive
+			setShowPreview(true) 
 		} catch {
 			setImportError('Impossible de lire ce fichier.')
 		}
@@ -222,10 +222,8 @@ export default function SpecificationPage() {
 		}
 	}, [deleteTarget])
 
-	const handleCopyPublicLink = (spec: SpecificationItem) => {
-		void navigator.clipboard.writeText(`${window.location.origin}/public/${spec.id}`)
-		setCopiedSpecId(spec.id)
-		setTimeout(() => setCopiedSpecId((current) => (current === spec.id ? null : current)), 1500)
+	const handleOpenPublicLink = (spec: SpecificationItem) => {
+		window.open(`${window.location.origin}/public/${spec.id}`, '_blank', 'noopener,noreferrer')
 	}
 
 	const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
@@ -275,12 +273,17 @@ export default function SpecificationPage() {
 
 
 						{/* ── Alerts ── */}
-						{error ? <div className="alert alert-danger">{error}</div> : null}
+						{error ? (
+							<div className="profile-alert profile-alert--error">
+								<AlertCircle size={18} />
+								{error}
+							</div>
+						) : null}
 
 						{/* ── Delete success toast ── */}
 						{deleteSuccess ? (
-							<div className="spec-toast spec-toast--success">
-								<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+							<div className="profile-alert profile-alert--success">
+								<CheckCircle2 size={18} />
 								<span><strong>{deleteSuccess}</strong> a été supprimé.</span>
 							</div>
 						) : null}
@@ -395,7 +398,12 @@ export default function SpecificationPage() {
 									</div>
 								) : null}
 
-								{importError ? <div className="alert alert-warning">{importError}</div> : null}
+								{importError ? (
+								<div className="profile-alert profile-alert--warning">
+									<AlertTriangle size={18} />
+									{importError}
+								</div>
+							) : null}
 
 								<div className="spec-actions">
 									<button type="button" className="btn btn-orange" onClick={handleImportSubmit} disabled={saving}>
@@ -440,9 +448,6 @@ export default function SpecificationPage() {
 									</div>
 									<strong>Aucune spécification importée</strong>
 									<p>Importez un fichier YAML ou JSON pour commencer à explorer vos APIs.</p>
-									<button type="button" className="btn btn-orange" onClick={() => setShowImport(true)}>
-										+ Importer une spécification
-									</button>
 								</div>
 							) : (
 								<>
@@ -475,24 +480,18 @@ export default function SpecificationPage() {
 														
 														<td>
 															<div className="spec-table__action-btns" role="group" aria-label={`Actions pour ${spec.name}`}>
-															{/*     Action buttons: Copy link, View, Edit, Delete */} 
-															    {/* <button
+													
+															    <button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--link"
-																	title="Copier le lien public"
-																	aria-label={`Copier le lien public de ${spec.name}`}
-																	onClick={() => handleCopyPublicLink(spec)}
+																	title="Ouvrir le lien public"
+																	aria-label={`Ouvrir le lien public de ${spec.name}`}
+																	onClick={() => handleOpenPublicLink(spec)}
 																>
-																	{copiedSpecId === spec.id ? (
-																		<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
-																			<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-																		</svg>
-																	) : (
-																		<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
-																			<path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
-																		</svg>
-																	)}
-																</button>  */}
+																	<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+																		<path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7ZM19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7Z"/>
+																	</svg>
+																</button>
 
 																<button
 																	type="button"
