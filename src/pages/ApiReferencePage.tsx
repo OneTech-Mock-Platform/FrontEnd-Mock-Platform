@@ -103,7 +103,7 @@ export default function ApiReferencePage() {
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
-  // Charge les endpoints de la spec
+  // Load the specification's endpoints
   useEffect(() => {
     if (!specId) return
     const load = async () => {
@@ -117,11 +117,11 @@ export default function ApiReferencePage() {
           const specData = await specRes.json()
           setSpecName(specData.name ?? '')
         }
-        if (!endpointsRes.ok) throw new Error('Impossible de charger les endpoints.')
+        if (!endpointsRes.ok) throw new Error('Could not load endpoints.')
         const data = await endpointsRes.json()
         setEndpoints(data.items ?? [])
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Erreur.')
+        setError(e instanceof Error ? e.message : 'Error.')
       } finally {
         setLoadingEndpoints(false)
       }
@@ -140,20 +140,20 @@ export default function ApiReferencePage() {
     [endpoints, endpointId],
   )
 
-  // Charge les scénarios de l'endpoint sélectionné 
+  // Load the scenarios for the selected endpoint
   const loadScenarios = useCallback(async (selectId?: string) => {
     if (!endpointId) return
     setLoadingScenarios(true)
     try {
       const res = await fetch(`/api/scenarios/endpoint/${endpointId}`, { headers: authHeaders() })
-      if (!res.ok) throw new Error('Impossible de charger les scénarios.')
+      if (!res.ok) throw new Error('Could not load scenarios.')
       const data = await res.json() as { items: Scenario[] }
       const items = data.items ?? []
       setScenarios(items)
       const fallback = items.find((s) => s.isDefault) ?? items[0] ?? null
       setSelectedScenarioId(selectId ?? fallback?.id ?? null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur.')
+      setError(e instanceof Error ? e.message : 'Error.')
     } finally {
       setLoadingScenarios(false)
     }
@@ -176,7 +176,7 @@ export default function ApiReferencePage() {
       const trimmed = payload.requestExample.trim()
       requestExampleParsed = trimmed ? JSON.parse(trimmed) : undefined
     } catch {
-      setError('Le corps de requête doit être un JSON valide.')
+      setError('The request body must be valid JSON.')
       return
     }
 
@@ -196,13 +196,13 @@ export default function ApiReferencePage() {
           mockContent: payload.mockContent,
         }),
       })
-      if (!res.ok) throw new Error(isEditing ? 'La modification du scénario a échoué.' : "La création du scénario a échoué.")
+      if (!res.ok) throw new Error(isEditing ? 'Failed to update the scenario.' : 'Failed to create the scenario.')
       const saved = await res.json() as { id: string }
       setShowScenarioPanel(false)
       setEditingScenario(null)
       await loadScenarios(saved.id)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur.')
+      setError(e instanceof Error ? e.message : 'Error.')
     }
   }
 
@@ -214,11 +214,11 @@ export default function ApiReferencePage() {
         method: 'DELETE',
         headers: authHeaders(),
       })
-      if (!res.ok) throw new Error('La suppression du scénario a échoué.')
+      if (!res.ok) throw new Error('Failed to delete the scenario.')
       setDeleteScenarioTarget(null)
       await loadScenarios()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur.')
+      setError(e instanceof Error ? e.message : 'Error.')
     } finally {
       setDeletingScenario(false)
     }
@@ -235,7 +235,7 @@ export default function ApiReferencePage() {
   const groupedEndpoints = useMemo(() => {
     const groups = new Map<string, Endpoint[]>()
     for (const ep of filteredEndpoints) {
-      const tag = ep.responses?.tags?.[0] || 'Autres'
+      const tag = ep.responses?.tags?.[0] || 'Other'
       if (!groups.has(tag)) groups.set(tag, [])
       groups.get(tag)!.push(ep)
     }
@@ -273,7 +273,7 @@ export default function ApiReferencePage() {
           <main className="app-stage">
             <div className="spec-empty spec-loading-full">
               <div className="spec-spinner" />
-              Chargement de la référence API…
+              Loading API reference…
             </div>
           </main>
         </div>
@@ -294,8 +294,8 @@ export default function ApiReferencePage() {
                 type="button"
                 className="spec-back-icon-btn"
                 onClick={() => navigate('/specifications')}
-                aria-label="Retour aux spécifications"
-                title="Retour aux spécifications"
+                aria-label="Back to specifications"
+                title="Back to specifications"
               >
                 <ArrowLeft size={16} />
               </button>
@@ -319,10 +319,10 @@ export default function ApiReferencePage() {
 
               <div>
                 <p className="section-kicker text-orange mb-0" style={{ fontSize: '0.72rem' }}>
-                  Référence API
+                  API Reference
                 </p>
                 <h1 className="panel-title mb-0" style={{ fontSize: '1.15rem' }}>
-                  {specName || 'Spécification'}
+                  {specName || 'Specification'}
                 </h1>
               </div>
             </div>
@@ -344,8 +344,8 @@ export default function ApiReferencePage() {
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Rechercher un endpoint…"
-                        aria-label="Rechercher un endpoint"
+                        placeholder="Search an endpoint…"
+                        aria-label="Search an endpoint"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         style={{ paddingLeft: 32, fontSize: '0.85rem' }}
@@ -355,7 +355,7 @@ export default function ApiReferencePage() {
 
                   <div className="spec-endpoints-list">
                   {filteredEndpoints.length === 0 ? (
-                    <p className="spec-empty-text">Aucun endpoint trouvé</p>
+                    <p className="spec-empty-text">No endpoint found</p>
                   ) : (
                     groupedEndpoints.map(([tag, items]) => (
                       <div key={tag} style={{ marginBottom: 10 }}>
@@ -396,11 +396,11 @@ export default function ApiReferencePage() {
                 </aside>
               </div>
 
-              {/* Contenu principal */}
+              {/* Main content */}
               <section>
                 {!selectedEndpoint ? (
                   <div className="spec-card">
-                    <div className="spec-empty">Sélectionne un endpoint dans la liste à gauche.</div>
+                    <div className="spec-empty">Select an endpoint from the list on the left.</div>
                   </div>
                 ) : (
                   <>
@@ -442,7 +442,7 @@ export default function ApiReferencePage() {
                       {selectedEndpoint.responses?.parameters && selectedEndpoint.responses.parameters.length > 0 && (
                         <div style={{ marginTop: 18, paddingTop: 16, borderTop: '1px solid #eef0f6' }}>
                           <p className="section-kicker" style={{ color: '#1d4ed8', marginBottom: 10 }}>
-                            Paramètres de requête
+                            Request parameters
                           </p>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {selectedEndpoint.responses.parameters.map((param) => (
@@ -457,7 +457,7 @@ export default function ApiReferencePage() {
                                         : { padding: '2px 8px', fontSize: '0.68rem' }
                                     }
                                   >
-                                    {param.required ? 'requis' : 'optionnel'}
+                                    {param.required ? 'required' : 'optional'}
                                   </span>
                                   <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{param.in}</span>
                                 </div>
@@ -473,21 +473,21 @@ export default function ApiReferencePage() {
 
                     <div className="spec-card">
                       <div className="panel-header">
-                        <h2 className="panel-title mb-0">Réponses</h2>
+                        <h2 className="panel-title mb-0">Responses</h2>
                       {<button
                           type="button"
                           className="btn btn-orange"
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', padding: '7px 14px' }}
                           onClick={() => setShowScenarioPanel(true)}
                         >
-                          <Plus size={15} /> Nouveau scénario
+                          <Plus size={15} /> New scenario
                         </button>}
                       </div>
 
                       {loadingScenarios ? (
-                        <div className="spec-empty">Chargement des scénarios…</div>
+                        <div className="spec-empty">Loading scenarios…</div>
                       ) : scenarios.length === 0 ? (
-                        <div className="spec-empty">Aucun scénario généré pour cet endpoint.</div>
+                        <div className="spec-empty">No scenario generated for this endpoint.</div>
                       ) : (
                         <>
                          
@@ -498,7 +498,7 @@ export default function ApiReferencePage() {
                               className="btn"
                               aria-haspopup="listbox"
                               aria-expanded={dropdownOpen}
-                              aria-label="Choisir le code de statut de la réponse"
+                              aria-label="Choose the response status code"
                               onClick={() => setDropdownOpen((v) => !v)}
                               style={{
                                 display: 'flex',
@@ -523,7 +523,7 @@ export default function ApiReferencePage() {
                                 </span>
                               )}
                               {selectedScenario && !selectedScenario.mockContentIsAuto && (
-                                <span title="Scénario personnalisé (créé manuellement ou via l'IA)" style={{ display: 'flex' }}>
+                                <span title="Custom scenario (created manually or via AI)" style={{ display: 'flex' }}>
                                   <Sparkles size={14} color="#f7941d" />
                                 </span>
                               )}
@@ -556,7 +556,7 @@ export default function ApiReferencePage() {
                                           {scenarioLabel(sc, selectedEndpoint?.method, selectedEndpoint?.path)}
                                         </span>
                                         {!sc.mockContentIsAuto && (
-                                          <span title="Scénario personnalisé (créé manuellement ou via l'IA)" style={{ display: 'flex' }}>
+                                          <span title="Custom scenario (created manually or via AI)" style={{ display: 'flex' }}>
                                             <Sparkles size={13} color="#f7941d" />
                                           </span>
                                         )}
@@ -572,8 +572,8 @@ export default function ApiReferencePage() {
                               <button
                                 type="button"
                                 className="scenario-action-btn"
-                                title="Modifier ce scénario"
-                                aria-label="Modifier ce scénario"
+                                title="Edit this scenario"
+                                aria-label="Edit this scenario"
                                 onClick={() => setEditingScenario(selectedScenario)}
                               >
                                 <Pencil size={15} />
@@ -581,8 +581,8 @@ export default function ApiReferencePage() {
                               <button
                                 type="button"
                                 className="scenario-action-btn scenario-action-btn--danger"
-                                title="Supprimer ce scénario"
-                                aria-label="Supprimer ce scénario"
+                                title="Delete this scenario"
+                                aria-label="Delete this scenario"
                                 onClick={() => setDeleteScenarioTarget(selectedScenario)}
                               >
                                 <Trash2 size={15} />
@@ -598,7 +598,7 @@ export default function ApiReferencePage() {
 
                               {testResult?.scenarioId !== selectedScenario?.id || !testResult ? (
                                 <div className="spec-empty" style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
-                                  Aucun test lancé pour ce scénario pour l'instant.
+                                  No test run for this scenario yet.
                                   <button
                                     type="button"
                                     className="btn btn-orange"
@@ -607,7 +607,7 @@ export default function ApiReferencePage() {
                                     onClick={() => void handleTest()}
                                   >
                                     <Send size={13} />
-                                    {testing ? 'Test en cours…' : 'Tester en direct'}
+                                    {testing ? 'Testing…' : 'Test live'}
                                   </button>
                                 </div>
                               ) : (
@@ -658,7 +658,7 @@ export default function ApiReferencePage() {
             type="button"
             className="spec-modal__close"
             onClick={() => setDeleteScenarioTarget(null)}
-            aria-label="Fermer la fenêtre de confirmation"
+            aria-label="Close confirmation dialog"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71l-1.41-1.42L9.17 12 2.89 5.71 4.3 4.3l6.29 6.29 6.29-6.29z"/>
@@ -669,9 +669,9 @@ export default function ApiReferencePage() {
             <Trash2 size={26} />
           </div>
 
-          <h3 className="spec-modal__title">Supprimer ce scénario ?</h3>
+          <h3 className="spec-modal__title">Delete this scenario?</h3>
           <p className="spec-modal__body">
-            Vous êtes sur le point de supprimer définitivement le scénario{' '}
+            You are about to permanently delete the scenario{' '}
             <strong>
               {deleteScenarioTarget.statusCode}
               {selectedEndpoint ? ` — ${scenarioLabel(deleteScenarioTarget, selectedEndpoint.method, selectedEndpoint.path)}` : ''}
@@ -682,7 +682,7 @@ export default function ApiReferencePage() {
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 2 1 21h22L12 2Zm0 5.5 6.53 11.5H5.47L12 7.5ZM11 10v4h2v-4h-2Zm0 5v2h2v-2h-2Z" />
             </svg>
-            Cette action est irréversible.
+            This action cannot be undone.
           </div>
 
           <div className="spec-modal__actions">
@@ -692,7 +692,7 @@ export default function ApiReferencePage() {
               onClick={() => void handleDeleteScenario()}
               disabled={deletingScenario}
             >
-              {deletingScenario ? 'Suppression…' : 'Supprimer définitivement'}
+              {deletingScenario ? 'Deleting…' : 'Delete permanently'}
             </button>
           </div>
         </div>

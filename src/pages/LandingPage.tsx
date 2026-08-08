@@ -78,7 +78,7 @@ const METHOD_COLORS: Record<string, string> = {
 const SERIES_BLUE = '#2a78d6'
 
 function formatDate(value: string) {
-	return new Intl.DateTimeFormat('fr-FR', {
+	return new Intl.DateTimeFormat('en-GB', {
 		day: '2-digit',
 		month: 'short',
 		year: 'numeric',
@@ -134,10 +134,10 @@ function LandingPage() {
 			setError('')
 			try {
 				const res = await fetch('/api/dashboard/stats', { headers: authHeaders() })
-				if (!res.ok) throw new Error('Impossible de charger les statistiques.')
+				if (!res.ok) throw new Error('Could not load statistics.')
 				setStats(await res.json())
 			} catch (e) {
-				setError(e instanceof Error ? e.message : 'Erreur de chargement.')
+				setError(e instanceof Error ? e.message : 'Loading error.')
 			} finally {
 				setLoading(false)
 			}
@@ -155,9 +155,9 @@ function LandingPage() {
 						<header className="spec-page__header">
 							<div className="spec-page__header-text">
 								<p className="section-kicker text-orange mb-1">Dashboard</p>
-								<h1 className="spec-page__title">Vue d'ensemble</h1>
+								<h1 className="spec-page__title">Overview</h1>
 								<p className="spec-page__subtitle">
-									Aperçu global de vos spécifications, endpoints et scénarios mock.
+									Global overview of your specifications, endpoints, and mock scenarios.
 								</p>
 							</div>
 						</header>
@@ -172,14 +172,14 @@ function LandingPage() {
 						{loading ? (
 							<div className="spec-empty">
 								<div className="spec-spinner" />
-								Chargement du tableau de bord…
+								Loading dashboard…
 							</div>
 						) : stats ? (
 							<>
 								<div className="dashboard-stats-grid">
 									<KpiTile
 										icon={<FileText size={18} />}
-										label="Spécifications importées"
+										label="Imported specifications"
 										value={stats.totals.specs}
 									/>
 									<KpiTile
@@ -189,26 +189,26 @@ function LandingPage() {
 									/>
 									<KpiTile
 										icon={<FlaskConical size={18} />}
-										label="Scénarios générés"
+										label="Generated scenarios"
 										value={stats.totals.scenarios}
 									/>
 									{/* <KpiTile
 										icon={<Layers size={18} />}
-										label="Scénarios / endpoint"
+										label="Scenarios / endpoint"
 										value={stats.totals.avgScenariosPerEndpoint}
-										hint="en moyenne"
+										hint="on average"
 									/> */}
 									{/* <KpiTile
 										icon={<ListChecks size={18} />}
-										label="Endpoints multi-scénarios"
+										label="Multi-scenario endpoints"
 										value={`${stats.totals.multiScenarioPercent}%`}
 										meterPercent={stats.totals.multiScenarioPercent}
 									/> */}
 									<KpiTile
 										icon={<ShieldCheck size={18} />}
-										label="Couverture des cas d'erreur"
+										label="Error case coverage"
 										value={`${stats.totals.errorCoveragePercent}%`}
-										hint="endpoints avec un scénario 4xx/5xx"
+										hint="endpoints with a 4xx/5xx scenario"
 										meterPercent={stats.totals.errorCoveragePercent}
 									/>
 								</div>
@@ -216,7 +216,7 @@ function LandingPage() {
 								<div className="dashboard-charts-grid">
 									<section className="spec-card dashboard-chart-card">
 										<div className="panel-header">
-											<h2 className="panel-title mb-0">Scénarios par famille de code</h2>
+											<h2 className="panel-title mb-0">Scenarios by status family</h2>
 										</div>
 										{stats.scenariosByFamily.length > 0 ? (
 											<div className="dashboard-chart-canvas-wrap">
@@ -239,7 +239,7 @@ function LandingPage() {
 														cutout: '68%',
 														plugins: {
 															legend: { position: 'bottom', labels: { boxWidth: 10, padding: 16, font: { size: 12 } } },
-															centerText: { value: stats.totals.scenarios, label: 'scénarios' },
+															centerText: { value: stats.totals.scenarios, label: 'scenarios' },
 														},
 														maintainAspectRatio: false,
 														responsive: true,
@@ -247,13 +247,13 @@ function LandingPage() {
 												/>
 											</div>
 										) : (
-											<div className="spec-empty">Aucun scénario pour l'instant.</div>
+											<div className="spec-empty">No scenario yet.</div>
 										)}
 									</section>
 
 									<section className="spec-card dashboard-chart-card">
 										<div className="panel-header">
-											<h2 className="panel-title mb-0">Endpoints par méthode HTTP</h2>
+											<h2 className="panel-title mb-0">Endpoints by HTTP method</h2>
 										</div>
 										{stats.endpointsByMethod.length > 0 ? (
 											<div className="dashboard-chart-canvas-wrap">
@@ -284,13 +284,13 @@ function LandingPage() {
 												/>
 											</div>
 										) : (
-											<div className="spec-empty">Aucun endpoint pour l'instant.</div>
+											<div className="spec-empty">No endpoint yet.</div>
 										)}
 									</section>
 
 									<section className="spec-card dashboard-chart-card dashboard-chart-card--wide">
 										<div className="panel-header">
-											<h2 className="panel-title mb-0">Scénarios par spécification</h2>
+											<h2 className="panel-title mb-0">Scenarios by specification</h2>
 										</div>
 										{stats.scenariosBySpec.length > 0 ? (
 											<div className="dashboard-chart-canvas-wrap">
@@ -319,17 +319,17 @@ function LandingPage() {
 												/>
 											</div>
 										) : (
-											<div className="spec-empty">Aucune spécification pour l'instant.</div>
+											<div className="spec-empty">No specification yet.</div>
 										)}
 									</section>
 								</div>
 
 								<section className="spec-card">
 									<div className="panel-header">
-										<h2 className="panel-title mb-0">Dernières spécifications</h2>
+										<h2 className="panel-title mb-0">Recent specifications</h2>
 									</div>
 									{stats.recentSpecs.length === 0 ? (
-										<div className="spec-empty">Aucune spécification importée pour l'instant.</div>
+										<div className="spec-empty">No specification imported yet.</div>
 									) : (
 										<div className="dashboard-recent-list">
 											{stats.recentSpecs.map((spec) => (
