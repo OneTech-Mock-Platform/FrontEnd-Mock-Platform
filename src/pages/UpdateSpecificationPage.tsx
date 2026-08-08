@@ -46,11 +46,11 @@ function IssueCard({ index, line, column, path, message, badge, onJumpToLine }: 
 					{line ? (
 						onJumpToLine ? (
 							<button type="button" className="spec-issue-card__line" onClick={() => onJumpToLine(line)}>
-								Ligne {line}{column ? `, col. ${column}` : ''}
+								Line {line}{column ? `, col. ${column}` : ''}
 							</button>
 						) : (
 							<span className="spec-issue-card__line">
-								Ligne {line}{column ? `, col. ${column}` : ''}
+								Line {line}{column ? `, col. ${column}` : ''}
 							</span>
 						)
 					) : null}
@@ -93,7 +93,7 @@ export default function SpecificationEditPage() {
 				}
 
 				const response = await fetch(`${apiBaseUrl}/${id}`, { headers })
-				if (!response.ok) throw new Error('Spécification introuvable.')
+				if (!response.ok) throw new Error('Specification not found.')
 				const data = (await response.json()) as SpecificationItem
 				setSpec(data)
 				setDraft({
@@ -103,7 +103,7 @@ export default function SpecificationEditPage() {
 					content: data.content,
 				})
 			} catch (e) {
-				setError(e instanceof Error ? e.message : 'Erreur de chargement.')
+				setError(e instanceof Error ? e.message : 'Loading error.')
 			} finally {
 				setLoading(false)
 			}
@@ -148,7 +148,7 @@ export default function SpecificationEditPage() {
 			
 			if (!response.ok) {
 				const body = await response.json().catch(() => null)
-				setValidationErrors(body?.errors ?? [{ message: body?.message ?? 'La sauvegarde a échoué.' }])
+				setValidationErrors(body?.errors ?? [{ message: body?.message ?? 'Save failed.' }])
 				return
 			}
 
@@ -164,7 +164,7 @@ export default function SpecificationEditPage() {
 			setSaveSuccess(true)
 			setTimeout(() => setSaveSuccess(false), 3000)
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Erreur de sauvegarde.')
+			setError(e instanceof Error ? e.message : 'Save error.')
 		} finally {
 			setSaving(false)
 		}
@@ -208,7 +208,7 @@ export default function SpecificationEditPage() {
 					<main className="app-stage">
 						<div className="spec-empty spec-loading-full">
 							<div className="spec-spinner" />
-							Chargement de la spécification…
+							Loading specification…
 						</div>
 					</main>
 				</div>
@@ -241,7 +241,7 @@ export default function SpecificationEditPage() {
 				<main className="app-stage">
 					<div className="spec-page">
 
-						{/* ── En-tête ── */}
+						{/* ── Header ── */}
 						<div className="spec-edit-header">
 							{/* ── Retour ── */}
 							<button type="button" className="spec-back-btn" onClick={() => navigate('/specifications')}>
@@ -250,14 +250,14 @@ export default function SpecificationEditPage() {
 										<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
 									</svg>
 								</span>
-								Retour aux spécifications
+								Back to specifications
 							</button>
 							<div className="spec-edit-header__right">
 								<span aria-live="polite">
 									{saveSuccess ? (
 										<span className="spec-saved-badge">
 											<CheckCircle2 size={14} />
-											Enregistré
+											Saved
 										</span>
 									) : null}
 								</span>
@@ -268,13 +268,13 @@ export default function SpecificationEditPage() {
 									disabled={saving}
 								>
 									{saving ? (
-										'Enregistrement…'
+										'Saving…'
 									) : (
 										<>
 											<svg viewBox="0 0 24 24" aria-hidden="true">
 												<path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4Zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6ZM15 9H6V5h9v4Z" />
 											</svg>
-											Enregistrer les modifications
+											Save changes
 										</>
 									)}
 								</button>
@@ -296,9 +296,9 @@ export default function SpecificationEditPage() {
 									</span>
 									<div>
 										<p className="spec-issues-banner__title">
-											{validationErrors.length} erreur{validationErrors.length > 1 ? 's' : ''} trouvée{validationErrors.length > 1 ? 's' : ''}
+											{validationErrors.length} error{validationErrors.length > 1 ? 's' : ''} found
 										</p>
-										<p className="spec-issues-banner__subtitle">Corrigez ces problèmes avant de pouvoir enregistrer.</p>
+										<p className="spec-issues-banner__subtitle">Fix these issues before you can save.</p>
 									</div>
 								</div>
 								<div className="spec-issues-banner__list">
@@ -324,9 +324,9 @@ export default function SpecificationEditPage() {
 									</span>
 									<div>
 										<p className="spec-issues-banner__title">
-											{strictWarnings.length} écart{strictWarnings.length > 1 ? 's' : ''} par rapport à la norme stricte OpenAPI
+											{strictWarnings.length} deviation{strictWarnings.length > 1 ? 's' : ''} from the strict OpenAPI standard
 										</p>
-										<p className="spec-issues-banner__subtitle">Purement informatif — la spécification a bien été enregistrée.</p>
+										<p className="spec-issues-banner__subtitle">Informational only — the specification was saved successfully.</p>
 									</div>
 								</div>
 								<div className="spec-issues-banner__list">
@@ -335,29 +335,29 @@ export default function SpecificationEditPage() {
 									))}
 								</div>
 								<p className="spec-issues-banner__footnote">
-									Ces écarts n'empêchent ni la sauvegarde ni la génération de scénarios.
+									These deviations do not prevent saving or scenario generation.
 								</p>
 							</div>
 						)}
 
-						{/* ── Métadonnées ── */}
+						{/* ── Metadata ── */}
 						<section className="spec-card">
 							<div className="panel-header">
-								<h2 className="panel-title mb-0" style={{ color: '#e47f00' }}>Détails de la spécification</h2>
+								<h2 className="panel-title mb-0" style={{ color: '#e47f00' }}>Specification details</h2>
 							</div>
 							<div className="spec-edit-meta-grid">
 								<label className="form-group">
-									<span>Nom</span>
+									<span>Name</span>
 									<input
 										className="form-control"
 										name="name"
 										value={draft.name}
 										onChange={handleFieldChange}
-										placeholder="Nom de la spécification"
+										placeholder="Specification name"
 									/>
 								</label>
 								<label className="form-group">
-									<span>Nom du fichier</span>
+									<span>File name</span>
 									<input
 										className="form-control"
 										name="fileName"
@@ -370,15 +370,15 @@ export default function SpecificationEditPage() {
 							</div>
 						</section>
 
-						{/* ── Éditeur ── */}
+						{/* ── Editor ── */}
 						<section className="spec-card spec-editor-card">
 							<div className="panel-header">
 								<div>
-									<p className="section-kicker text-orange mb-1">Contenu</p>
-									<h2 className="panel-title mb-0">Contenu du fichier</h2>
+									<p className="section-kicker text-orange mb-1">Content</p>
+									<h2 className="panel-title mb-0">File content</h2>
 								</div>
 								<div className="spec-editor-toolbar">
-									<span className="spec-editor-stat">{lines} lignes</span>
+									<span className="spec-editor-stat">{lines} lines</span>
 									<span className={`spec-badge spec-badge--${draft.format}`}>
 										{draft.format.toUpperCase()}
 									</span>
@@ -404,15 +404,15 @@ export default function SpecificationEditPage() {
 								autoComplete="off"
 								autoCorrect="off"
 								autoCapitalize="off"
-								placeholder={`Collez votre contenu OpenAPI ${draft.format.toUpperCase()} ici…`}
+								placeholder={`Paste your OpenAPI ${draft.format.toUpperCase()} content here…`}
 							/>
 							</div>
 
 							<div className="spec-editor-statusbar">
 								<span>{draft.format.toUpperCase()}</span>
-								<span>{lines} lignes · {draft.content.length} caractères</span>
+								<span>{lines} lines · {draft.content.length} characters</span>
 								<span className={saveSuccess ? 'spec-status--clean' : ''}>
-									{saveSuccess ? '✓ Enregistré' : ''}
+									{saveSuccess ? '✓ Saved' : ''}
 								</span>
 							</div>
 						</section>

@@ -51,7 +51,7 @@ function resolveFormat(fileName: string): SpecificationFormat {
 }
 
 function formatDate(value: string) {
-	return new Intl.DateTimeFormat('fr-FR', {
+	return new Intl.DateTimeFormat('en-GB', {
 		day: '2-digit',
 		month: 'short',
 		year: 'numeric',
@@ -59,9 +59,9 @@ function formatDate(value: string) {
 }
 
 function formatFileSize(bytes: number): string {
-	if (bytes < 1024) return `${bytes} o`
-	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`
-	return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
+	if (bytes < 1024) return `${bytes} B`
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function authHeaders(): Record<string, string> {
@@ -102,11 +102,11 @@ export default function SpecificationPage() {
 			const response = await fetch(apiBaseUrl, {
 				headers: authHeaders(),
 			})
-			if (!response.ok) throw new Error('Impossible de charger les spécifications.')
+			if (!response.ok) throw new Error('Could not load specifications.')
 			const data = (await response.json()) as SpecificationResponse
 			setSpecs(data.items ?? [])
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Erreur de chargement.')
+			setError(e instanceof Error ? e.message : 'Loading error.')
 		} finally {
 			setLoading(false)
 		}
@@ -133,13 +133,13 @@ export default function SpecificationPage() {
 			setImportDraft(draft)
 			setShowPreview(true) 
 		} catch {
-			setImportError('Impossible de lire ce fichier.')
+			setImportError('Could not read this file.')
 		}
 	}
 
 	const handleImportSubmit = async () => {
 		if (!importDraft.fileName || !importDraft.content) {
-			setImportError("Choisis un fichier OpenAPI YAML ou JSON avant l'import.")
+			setImportError('Choose an OpenAPI YAML or JSON file before importing.')
 			return
 		}
 		setSaving(true)
@@ -150,7 +150,7 @@ export default function SpecificationPage() {
 				headers: authHeaders(),
 				body: JSON.stringify(importDraft),
 			})
-			if (!response.ok) throw new Error("L'import a échoué.")
+			if (!response.ok) throw new Error('Import failed.')
 			const created = (await response.json()) as SpecificationItem
 			setSpecs((prev) => [created, ...prev.filter((i) => i.id !== created.id)])
 			setImportDraft(emptyDraft)
@@ -158,7 +158,7 @@ export default function SpecificationPage() {
 			setShowImport(false)
 			setCurrentPage(1)
 		} catch (e) {
-			setError(e instanceof Error ? e.message : "Erreur lors de l'import.")
+			setError(e instanceof Error ? e.message : 'Error during import.')
 		} finally {
 			setSaving(false)
 		}
@@ -172,13 +172,13 @@ export default function SpecificationPage() {
 				method: 'DELETE',
 				headers: authHeaders(),
 			})
-			if (!response.ok) throw new Error('La suppression a échoué.')
+			if (!response.ok) throw new Error('Deletion failed.')
 			setSpecs((prev) => prev.filter((i) => i.id !== deleteTarget.id))
 			setDeleteSuccess(deleteTarget.name)
 			setDeleteTarget(null)
 			setTimeout(() => setDeleteSuccess(null), 3500)
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Erreur de suppression.')
+			setError(e instanceof Error ? e.message : 'Deletion error.')
 		} finally {
 			setSaving(false)
 		}
@@ -250,10 +250,10 @@ export default function SpecificationPage() {
 						{/* ── Header ── */}
 						<header className="spec-page__header">
 							<div className="spec-page__header-text">
-								<p className="section-kicker text-orange mb-1">Spécifications</p>
-								<h1 className="spec-page__title">Vos spécifications OpenAPI</h1>
+								<p className="section-kicker text-orange mb-1">Specifications</p>
+								<h1 className="spec-page__title">Your OpenAPI specifications</h1>
 								<p className="spec-page__subtitle">
-									Importez, consultez et gérez vos fichiers de spécification API en un seul endroit.
+									Import, view, and manage your API specification files in one place.
 								</p>
 							</div>
 
@@ -266,7 +266,7 @@ export default function SpecificationPage() {
 								<svg className="spec-import-trigger__icon" viewBox="0 0 24 24" aria-hidden="true">
 									<path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6z" />
 								</svg>
-								{showImport ? 'Fermer' : 'Importer une spécification'}
+								{showImport ? 'Close' : 'Import a specification'}
 							</button>
 						</header>
 
@@ -284,7 +284,7 @@ export default function SpecificationPage() {
 						{deleteSuccess ? (
 							<div className="profile-alert profile-alert--success">
 								<CheckCircle2 size={18} />
-								<span><strong>{deleteSuccess}</strong> a été supprimé.</span>
+								<span><strong>{deleteSuccess}</strong> has been deleted.</span>
 							</div>
 						) : null}
 
@@ -294,7 +294,7 @@ export default function SpecificationPage() {
 								<div className="panel-header">
 									<div>
 										<p className="section-kicker text-orange mb-1">Import</p>
-										<h2 className="panel-title mb-0">Fichier OpenAPI</h2>
+										<h2 className="panel-title mb-0">OpenAPI file</h2>
 									</div>
 								</div>
 
@@ -332,7 +332,7 @@ export default function SpecificationPage() {
 												<code className="import-dropzone__file-fullname">{importDraft.fileName}</code>
 											</div>
 											<button type="button" className="btn btn-outline-secondary import-dropzone__button">
-												Changer de fichier
+												Change file
 											</button>
 										</>
 									) : (
@@ -342,10 +342,10 @@ export default function SpecificationPage() {
 													<path d="M19 15v4H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4h-2Zm-8-1 3.59-3.59L16 12l-5 5-5-5 1.41-1.41L11 14.59V3h2v11Z" />
 												</svg>
 											</div>
-											<strong>Glissez-déposez votre fichier</strong>
-											<span>OpenAPI YAML ou JSON</span>
+											<strong>Drag and drop your file</strong>
+											<span>OpenAPI YAML or JSON</span>
 											<button type="button" className="btn btn-orange import-dropzone__button">
-												Choisir un fichier
+												Choose a file
 											</button>
 										</>
 									)}
@@ -370,11 +370,11 @@ export default function SpecificationPage() {
 												<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
 													<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
 												</svg>
-												Aperçu du contenu
+												Content preview
 											</span>
 											<span className="import-preview__toggle-right">
 												<span className="import-preview__meta">
-													{importDraft.content.split('\n').length} lignes 
+													{importDraft.content.split('\n').length} lines
 												</span>
 												<svg
 													viewBox="0 0 24 24" width="16" height="16" fill="currentColor"
@@ -407,7 +407,7 @@ export default function SpecificationPage() {
 
 								<div className="spec-actions">
 									<button type="button" className="btn btn-orange" onClick={handleImportSubmit} disabled={saving}>
-										{saving ? 'Importation…' : 'Importer la spécification'}
+										{saving ? 'Importing…' : 'Import specification'}
 									</button>
 									<button type="button" className="btn btn-outline-secondary" onClick={() => {
 										setImportDraft(emptyDraft)
@@ -415,7 +415,7 @@ export default function SpecificationPage() {
 										setShowPreview(true)
 										if (fileInputRef.current) fileInputRef.current.value = ''
 									}}>
-										Réinitialiser
+										Reset
 									</button>
 								</div>
 							</section>
@@ -426,7 +426,7 @@ export default function SpecificationPage() {
 							<div className="panel-header">
 								<div>
 									<h2 className="panel-title mb-0" style={{color: '#e47f00'}}>
-										Toutes les spécifications
+										All specifications
 									</h2>
 									<p className="spec-table-count-label">
 							
@@ -437,7 +437,7 @@ export default function SpecificationPage() {
 							{loading ? (
 								<div className="spec-empty">
 									<div className="spec-spinner" />
-									Chargement des spécifications…
+									Loading specifications…
 								</div>
 							) : specs.length === 0 ? (
 								<div className="spec-empty spec-empty--cta">
@@ -446,8 +446,8 @@ export default function SpecificationPage() {
 											<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
 										</svg>
 									</div>
-									<strong>Aucune spécification importée</strong>
-									<p>Importez un fichier YAML ou JSON pour commencer à explorer vos APIs.</p>
+									<strong>No specification imported</strong>
+									<p>Import a YAML or JSON file to start exploring your APIs.</p>
 								</div>
 							) : (
 								<>
@@ -455,8 +455,8 @@ export default function SpecificationPage() {
 										<table className="spec-table">
 											<thead>
 												<tr>
-													<th scope="col">Nom</th>
-													<th scope="col">Fichier</th>
+													<th scope="col">Name</th>
+													<th scope="col">File</th>
 													<th scope="col">Format</th>
 													<th scope="col">Date</th>
 													<th scope="col" className="spec-table__actions-col">Actions</th>
@@ -479,13 +479,13 @@ export default function SpecificationPage() {
 														<td className="spec-table__date">{formatDate(spec.createdAt)}</td>
 														
 														<td>
-															<div className="spec-table__action-btns" role="group" aria-label={`Actions pour ${spec.name}`}>
-													
+															<div className="spec-table__action-btns" role="group" aria-label={`Actions for ${spec.name}`}>
+
 															    <button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--link"
-																	title="Ouvrir le lien public"
-																	aria-label={`Ouvrir le lien public de ${spec.name}`}
+																	title="Open public link"
+																	aria-label={`Open public link for ${spec.name}`}
 																	onClick={() => handleOpenPublicLink(spec)}
 																>
 																	<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
@@ -496,8 +496,8 @@ export default function SpecificationPage() {
 																<button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--view"
-																	title="Voir les détails"
-																	aria-label={`Voir les détails de ${spec.name}`}
+																	title="View details"
+																	aria-label={`View details for ${spec.name}`}
 																	onClick={() => navigate(`/specifications/${spec.id}/reference`)}
 																>
 																	<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
@@ -507,8 +507,8 @@ export default function SpecificationPage() {
 																<button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--edit"
-																	title="Modifier la spécification"
-																	aria-label={`Modifier ${spec.name}`}
+																	title="Edit specification"
+																	aria-label={`Edit ${spec.name}`}
 																	onClick={() => navigate(`/specifications/${spec.id}/edit`)}
 																>
 																	<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
@@ -518,8 +518,8 @@ export default function SpecificationPage() {
 																<button
 																	type="button"
 																	className="spec-icon-btn spec-icon-btn--delete"
-																	title="Supprimer la spécification"
-																	aria-label={`Supprimer ${spec.name}`}
+																	title="Delete specification"
+																	aria-label={`Delete ${spec.name}`}
 																	onClick={() => setDeleteTarget(spec)}
 																>
 																	<svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
@@ -543,7 +543,7 @@ export default function SpecificationPage() {
 												disabled={currentPage === 1}
 												onClick={() => setCurrentPage((p) => p - 1)}
 											>
-												‹ Précédent
+												‹ Previous
 											</button>
 											<div className="spec-page-numbers">
 												{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -565,10 +565,10 @@ export default function SpecificationPage() {
 												disabled={currentPage === totalPages}
 												onClick={() => setCurrentPage((p) => p + 1)}
 											>
-												Suivant ›
+												Next ›
 											</button>
 											<span className="spec-page-info">
-												{(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, specs.length)} sur {specs.length}
+												{(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, specs.length)} of {specs.length}
 											</span>
 										</div>
 									) : null}
@@ -596,7 +596,7 @@ export default function SpecificationPage() {
 							ref={deleteCancelRef}
 							className="spec-modal__close"
 							onClick={() => setDeleteTarget(null)}
-							aria-label="Fermer la fenêtre de confirmation"
+							aria-label="Close confirmation dialog"
 						>
 							<svg viewBox="0 0 24 24" aria-hidden="true">
 								<path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71l-1.41-1.42L9.17 12 2.89 5.71 4.3 4.3l6.29 6.29 6.29-6.29z"/>
@@ -609,16 +609,16 @@ export default function SpecificationPage() {
 							</svg>
 						</div>
 
-						<h3 className="spec-modal__title" id="delete-modal-title">Supprimer cette spécification ?</h3>
+						<h3 className="spec-modal__title" id="delete-modal-title">Delete this specification?</h3>
 						<p className="spec-modal__body" id="delete-modal-desc">
-							Vous êtes sur le point de supprimer définitivement <strong>{deleteTarget.name}</strong>.
+							You are about to permanently delete <strong>{deleteTarget.name}</strong>.
 						</p>
 
 						<div className="spec-modal__warning">
 							<svg viewBox="0 0 24 24" aria-hidden="true">
 								<path d="M12 2 1 21h22L12 2Zm0 5.5 6.53 11.5H5.47L12 7.5ZM11 10v4h2v-4h-2Zm0 5v2h2v-2h-2Z" />
 							</svg>
-							Cette action est irréversible.
+							This action cannot be undone.
 						</div>
 
 						<div className="spec-modal__actions">
@@ -629,13 +629,13 @@ export default function SpecificationPage() {
 								disabled={saving}
 							>
 								{saving ? (
-									'Suppression…'
+									'Deleting…'
 								) : (
 									<>
 										<svg viewBox="0 0 24 24" aria-hidden="true">
 											<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
 										</svg>
-										Supprimer définitivement
+										Delete permanently
 									</>
 								)}
 							</button>
