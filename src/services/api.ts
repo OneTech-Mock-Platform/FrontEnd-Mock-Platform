@@ -9,7 +9,7 @@ function extractErrorMessage(data: any): string {
   if (data.message) {
     return data.message;
   }
-  return 'Une erreur est survenue';
+  return 'An error occurred';
 }
 
 export async function registerUser(
@@ -78,7 +78,7 @@ export async function ensureFreshToken(): Promise<string | undefined> {
 export async function updateProfile(data: { firstName?: string; lastName?: string; username?: string; password?: string }) {
   const token = await ensureFreshToken();
   if (!token) {
-    throw new Error('Token non trouvé');
+    throw new Error('Token not found');
   }
 
   const res = await fetch(`${API_BASE}/profile`, {

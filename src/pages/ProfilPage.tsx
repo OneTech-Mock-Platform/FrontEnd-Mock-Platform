@@ -57,13 +57,13 @@ export default function ProfilPage() {
     setSuccess('');
 
     if (formData.newPassword && formData.newPassword.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+      setError('Password must contain at least 6 characters');
       setLoading(false);
       return;
     }
 
     if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError('Passwords do not match');
       setLoading(false);
       return;
     }
@@ -75,7 +75,7 @@ export default function ProfilPage() {
     if (formData.newPassword) data.password = formData.newPassword;
 
     if (Object.keys(data).length === 0) {
-      setError('Aucune modification à enregistrer');
+      setError('No changes to save');
       setLoading(false);
       return;
     }
@@ -101,9 +101,9 @@ export default function ProfilPage() {
         confirmPassword: '',
       });
 
-      setSuccess('Profil mis à jour avec succès !');
+      setSuccess('Profile updated successfully!');
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de la mise à jour du profil');
+      setError(err.message || 'Error updating profile');
     } finally {
       setLoading(false);
     }
@@ -118,15 +118,15 @@ export default function ProfilPage() {
           <div className="spec-page">
             <div className="spec-page__header">
               <div className="spec-page__header-text">
-                <h1 className="spec-page__title">Mon profil</h1>
-                <p className="spec-page__subtitle">Gérez vos informations personnelles et votre sécurité.</p>
+                <h1 className="spec-page__title">My profile</h1>
+                <p className="spec-page__subtitle">Manage your personal information and security.</p>
               </div>
             </div>
 
             <div className="profile-hero">
               <span className="profile-hero__avatar">{initials}</span>
               <div className="profile-hero__info">
-                <strong className="profile-hero__name">{user?.name || 'Utilisateur'}</strong>
+                <strong className="profile-hero__name">{user?.name || 'User'}</strong>
                 <span className="profile-hero__email">
                   <Mail size={14} />
                   {user?.email || ''}
@@ -141,13 +141,13 @@ export default function ProfilPage() {
                     <UserIcon size={18} />
                   </span>
                   <div>
-                    <h3 className="profile-section__title">Informations personnelles</h3>
-                    <p className="profile-section__desc"> Consultez et modifiez vos informations personnelles.</p>
+                    <h3 className="profile-section__title">Personal information</h3>
+                    <p className="profile-section__desc"> View and edit your personal information.</p>
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <span>Nom d'utilisateur</span>
+                  <span>Username</span>
                   <div className="profile-field">
                     <UserIcon size={16} className="profile-field__icon" />
                     <input
@@ -156,13 +156,13 @@ export default function ProfilPage() {
                       value={formData.username}
                       onChange={handleChange}
                       className="profile-input"
-                      placeholder="Votre nom d'utilisateur"
+                      placeholder="Your username"
                     />
                   </div>
                 </div>
 
                 <div className="form-group" style={{ marginTop: '16px' }}>
-                  <span>Prénom</span>
+                  <span>First name</span>
                   <div className="profile-field">
                     <UserIcon size={16} className="profile-field__icon" />
                     <input
@@ -171,13 +171,13 @@ export default function ProfilPage() {
                       value={formData.firstName}
                       onChange={handleChange}
                       className="profile-input"
-                      placeholder="Votre prénom"
+                      placeholder="Your first name"
                     />
                   </div>
                 </div>
 
                 <div className="form-group" style={{ marginTop: '16px' }}>
-                  <span>Nom</span>
+                  <span>Last name</span>
                   <div className="profile-field">
                     <UserIcon size={16} className="profile-field__icon" />
                     <input
@@ -186,7 +186,7 @@ export default function ProfilPage() {
                       value={formData.lastName}
                       onChange={handleChange}
                       className="profile-input"
-                      placeholder="Votre nom"
+                      placeholder="Your last name"
                     />
                   </div>
                 </div>
@@ -206,13 +206,13 @@ export default function ProfilPage() {
                     <Lock size={18} />
                   </span>
                   <div>
-                    <h3 className="profile-section__title">Sécurité</h3>
-                    <p className="profile-section__desc">Laissez vide si vous ne souhaitez pas changer de mot de passe</p>
+                    <h3 className="profile-section__title">Security</h3>
+                    <p className="profile-section__desc">Leave empty if you do not want to change your password</p>
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <span>Nouveau mot de passe</span>
+                  <span>New password</span>
                   <div className="profile-field">
                     <KeyRound size={16} className="profile-field__icon" />
                     <input
@@ -221,13 +221,13 @@ export default function ProfilPage() {
                       value={formData.newPassword}
                       onChange={handleChange}
                       className="profile-input"
-                      placeholder="Nouveau mot de passe"
+                      placeholder="New password"
                     />
                   </div>
                 </div>
 
                 <div className="form-group" style={{ marginTop: '16px' }}>
-                  <span>Confirmer le nouveau mot de passe</span>
+                  <span>Confirm new password</span>
                   <div className="profile-field">
                     <KeyRound size={16} className="profile-field__icon" />
                     <input
@@ -236,7 +236,7 @@ export default function ProfilPage() {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       className="profile-input"
-                      placeholder="Confirmer le nouveau mot de passe"
+                      placeholder="Confirm new password"
                     />
                   </div>
                 </div>
@@ -260,7 +260,7 @@ export default function ProfilPage() {
               <div className="spec-actions">
                 <button type="submit" disabled={loading} className="spec-save-btn">
                   <Save size={18} />
-                  {loading ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                  {loading ? 'Saving...' : 'Save changes'}
                 </button>
               </div>
             </form>
